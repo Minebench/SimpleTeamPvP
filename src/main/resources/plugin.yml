@@ -1,0 +1,20 @@
+name: ${project.name}
+main: de.themoep.simpleteampvp.SimpleTeamPvP
+version: 0.2
+description: ${project.description}
+authors: [Phoenix616]
+soft-depend: [ServerTags]
+commands:
+   simpleteampvp:
+      aliases: [stp]
+      description: Command description.
+      usage: /<command>
+      permission: simpleteampvp.command
+      permission-message: You don't have the permission <permission>
+permissions:
+   simpleteampvp.command:
+      description: Gives permission to the plugin command
+      default: op
+   simpleteampvp.bypass:
+      description: Gives permission to bypass stuff
+      default: op
