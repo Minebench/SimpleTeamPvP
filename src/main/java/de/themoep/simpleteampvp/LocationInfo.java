@@ -68,6 +68,18 @@ public class LocationInfo implements Cloneable {
         return z;
     }
 
+    public int getBlockX() {
+        return NumberConversions.floor(x);
+    }
+
+    public int getBlockY() {
+        return NumberConversions.floor(x);
+    }
+
+    public int getBlockZ() {
+        return NumberConversions.floor(x);
+    }
+
     public float getYaw() {
         return yaw;
     }
@@ -126,5 +138,4 @@ public class LocationInfo implements Cloneable {
     public boolean contains(Block block) {
         return (int) x == block.getX() && (int) y == block.getY() && (int) z == block.getZ() && worldName.equalsIgnoreCase(block.getWorld().getName());
     }
-
 }
