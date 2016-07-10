@@ -129,7 +129,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
         }
         pointObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().registerNewObjective("teamPoints", "dummy");
         setObjectiveDisplay("Points (%winscore%)");
-        plugin.registerGame(this.name, this);
     }
 
     /**
