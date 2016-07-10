@@ -1,11 +1,15 @@
 package de.themoep.simpleteampvp;
 
+import de.themoep.simpleteampvp.commands.GameSubCommand;
+import de.themoep.simpleteampvp.commands.KitSubCommand;
+import de.themoep.simpleteampvp.commands.PluginCommandExecutor;
+import de.themoep.simpleteampvp.commands.AdminSubCommand;
+import de.themoep.simpleteampvp.commands.TeamSubCommand;
 import de.themoep.simpleteampvp.games.GameState;
 import de.themoep.simpleteampvp.games.SimpleTeamPvPGame;
 import de.themoep.simpleteampvp.games.XmasGame;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Color;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
@@ -53,7 +57,11 @@ public class SimpleTeamPvP extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
         loadConfig();
-        new SimpleTeamPvPCommand(this);
+        PluginCommandExecutor comEx = new PluginCommandExecutor(this);
+        comEx.register(new AdminSubCommand(this));
+        comEx.register(new GameSubCommand(this));
+        comEx.register(new TeamSubCommand(this));
+        comEx.register(new KitSubCommand(this));
         getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
     }
 

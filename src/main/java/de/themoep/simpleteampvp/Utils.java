@@ -92,4 +92,26 @@ public class Utils {
     public static Color convertColor(org.bukkit.ChatColor color) {
         return convertColor(color.asBungee());
     }
+
+    /**
+     * Join an array of strings with a certain delimiter and a specific range
+     * @param args The array to join
+     * @param delimiter The delimiter string
+     * @param startIndex The start index, if negative from the end
+     * @param endIndex The end index, if negative from the end
+     * @return The joined array including the string at the startIndex and excluding the one at the endIndex
+     */
+    public static String join(String[] args, String delimiter, int startIndex, int endIndex) {
+        if (startIndex < 0) {
+            startIndex = args.length + startIndex;
+        }
+        if (endIndex < 0) {
+            endIndex = args.length + endIndex;
+        }
+        StringBuilder sb = new StringBuilder(args[startIndex]);
+        for (int i = startIndex + 1; i < endIndex; i++) {
+            sb.append(delimiter).append(args[i]);
+        }
+        return sb.toString();
+    }
 }
