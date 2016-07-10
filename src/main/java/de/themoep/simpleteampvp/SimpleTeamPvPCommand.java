@@ -16,6 +16,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 /**
@@ -313,36 +314,15 @@ public class SimpleTeamPvPCommand implements CommandExecutor, TabCompleter {
                             TeamInfo teamInfo = plugin.getTeam(args[2]);
                             if(teamInfo != null) {
                                 sender.sendMessage(ChatColor.GREEN + "Team name: " + ChatColor.WHITE + teamInfo.getName());
-                                sender.sendMessage(ChatColor.GREEN + "Display name: " + ChatColor.WHITE + teamInfo.getScoreboardTeam().getDisplayName());
-                                if(teamInfo.getColor() != null) {
-                                    sender.sendMessage(ChatColor.GREEN + "Color: " + teamInfo.getColor() + teamInfo.getColor().getName());
-                                } else {
-                                    sender.sendMessage(ChatColor.GREEN + "Color: " + ChatColor.RED + "none");
-                                }
-                                sender.sendMessage(ChatColor.GREEN + "Block: " + ChatColor.WHITE + teamInfo.getBlockMaterial() + ":" + teamInfo.getBlockData());
-                                if(teamInfo.getSpawn() != null) {
-                                    sender.sendMessage(new String[]{
-                                            ChatColor.GREEN + "Spawn:",
-                                            ChatColor.GREEN + " World: " + ChatColor.WHITE + teamInfo.getSpawn().getWorldName(),
-                                            ChatColor.GREEN + " X: " + ChatColor.WHITE + teamInfo.getSpawn().getX(),
-                                            ChatColor.GREEN + " Y: " + ChatColor.WHITE + teamInfo.getSpawn().getY(),
-                                            ChatColor.GREEN + " Z: " + ChatColor.WHITE + teamInfo.getSpawn().getZ(),
-                                            ChatColor.GREEN + " Pitch: " + ChatColor.WHITE + teamInfo.getSpawn().getPitch(),
-                                            ChatColor.GREEN + " Yaw: " + ChatColor.WHITE + teamInfo.getSpawn().getYaw(),
-                                    });
-                                } else {
-                                    sender.sendMessage(ChatColor.GREEN + "Spawn: " + ChatColor.RED + "none");
-                                }
-                                if(teamInfo.getPoint() != null) {
-                                    sender.sendMessage(new String[]{
-                                            ChatColor.GREEN + "Point:",
-                                            ChatColor.GREEN + " World: " + ChatColor.WHITE + teamInfo.getPoint().getWorldName(),
-                                            ChatColor.GREEN + " X: " + ChatColor.WHITE + teamInfo.getPoint().getX(),
-                                            ChatColor.GREEN + " Y: " + ChatColor.WHITE + teamInfo.getPoint().getY(),
-                                            ChatColor.GREEN + " Z: " + ChatColor.WHITE + teamInfo.getPoint().getZ(),
-                                    });
-                                } else {
-                                    sender.sendMessage(ChatColor.GREEN + "Point: " + ChatColor.RED + "none");
+                                for (Map.Entry<String, Object> entry : teamInfo.serialize().entrySet()) {
+                                    if (entry.getValue() instanceof LocationInfo) {
+                                        sender.sendMessage(ChatColor.GREEN + entry.getKey() + ":");
+                                        for (Map.Entry<String, Object> locEntry : ((LocationInfo) entry.getValue()).serialize().entrySet()) {
+                                            sender.sendMessage(ChatColor.GREEN + " " + locEntry.getKey() + ": " + ChatColor.WHITE + locEntry.getValue());
+                                        }
+                                    } else {
+                                        sender.sendMessage(ChatColor.GREEN + entry.getKey() + ": " + ChatColor.WHITE + entry.getValue());
+                                    }
                                 }
                             } else {
                                 sender.sendMessage(ChatColor.RED + "No team with the name " + ChatColor.WHITE + args[2] + ChatColor.RED + " found!");
