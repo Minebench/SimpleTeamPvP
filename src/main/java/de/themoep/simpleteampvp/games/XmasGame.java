@@ -15,6 +15,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Team;
 
 import java.util.Iterator;
@@ -42,12 +43,19 @@ public class XmasGame extends SimpleTeamPvPGame {
 
         useKits(true);
         showScore(true);
+    }
+
+    @Override
+    public boolean start() {
         setObjectiveDisplay(ChatColor.GREEN + "%time% " + ChatColor.WHITE + "- " + ChatColor.RED +"%winscore%");
         for(TeamInfo team : plugin.getTeamMap().values()) {
             team.getScoreboardTeam().setAllowFriendlyFire(false);
             team.getScoreboardTeam().setCanSeeFriendlyInvisibles(true);
             team.getScoreboardTeam().setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
         }
+        plugin.getServer().getScoreboardManager().getMainScoreboard().clearSlot(DisplaySlot.BELOW_NAME);
+        plugin.getServer().getScoreboardManager().getMainScoreboard().clearSlot(DisplaySlot.PLAYER_LIST);
+        return super.start();
     }
 
     @EventHandler

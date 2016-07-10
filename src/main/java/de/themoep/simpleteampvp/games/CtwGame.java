@@ -43,13 +43,17 @@ public class CtwGame extends SimpleTeamPvPGame {
 
     public CtwGame(SimpleTeamPvP plugin) {
         super(plugin, "ctw");
+    }
 
+    @Override
+    public boolean start() {
         setObjectiveDisplay(ChatColor.WHITE + "Time: " + ChatColor.GREEN + "%time%" + ChatColor.WHITE);
         for (TeamInfo team : plugin.getTeamMap().values()) {
             team.getScoreboardTeam().setAllowFriendlyFire(false);
             team.getScoreboardTeam().setCanSeeFriendlyInvisibles(true);
             team.getScoreboardTeam().setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
         }
+        plugin.getServer().getScoreboardManager().getMainScoreboard().clearSlot(DisplaySlot.PLAYER_LIST);
 
         carriedObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().getObjective("carriedPoints");
         if(carriedObjective != null) {
@@ -58,6 +62,7 @@ public class CtwGame extends SimpleTeamPvPGame {
         carriedObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().registerNewObjective("carriedPoints", "dummy");
         carriedObjective.setDisplayName("Wolle");
         carriedObjective.setDisplaySlot(DisplaySlot.BELOW_NAME);
+        return super.start();
     }
 
     @EventHandler

@@ -72,6 +72,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
     private GameState state;
     private boolean useKits = false;
     private boolean showScore = false;
+    private boolean showScoreExp = false;
     private ItemStack pointItem = null;
     private int winScore = -1;
     private int duration = -1;
@@ -354,13 +355,13 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     player.setBedSpawnLocation(spawnLocation, true);
                 }
             }
-            if(showScore) {
-                Score score = pointObjective.getScore(team.getColor() + team.getName());
-                score.setScore(0);
-            }
+            Score score = pointObjective.getScore(team.getColor() + team.getName());
+            score.setScore(0);
         }
         state = GameState.RUNNING;
-        pointObjective.setDisplaySlot(DisplaySlot.SIDEBAR);
+        if(showScore) {
+            pointObjective.setDisplaySlot(DisplaySlot.SIDEBAR);
+        }
         plugin.getServer().broadcastMessage(ChatColor.GREEN + "Spiel gestartet!");
 
         if(duration > 0) {
@@ -566,7 +567,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     }
                 }, 1L);
             }
-            if(showScore) {
+            if(showScoreExp) {
                 event.getPlayer().setLevel(team.getScore());
             }
         }
@@ -605,7 +606,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     private int setScore(TeamInfo team, int i) {
         team.setScore(i);
-        if(showScore) {
+        if(showScoreExp) {
             for(String entry : team.getScoreboardTeam().getEntries()) {
                 Player player = plugin.getServer().getPlayer(entry);
                 if(player != null && player.isOnline()) {
@@ -625,6 +626,10 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     public void showScore(boolean showScore) {
         this.showScore = showScore;
+    }
+
+    public void showScoreExp(boolean showScoreExp) {
+        this.showScoreExp = showScoreExp;
     }
 
     public ItemStack getPointItem() {
@@ -723,6 +728,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
     }
 
     public String toString() {
-        return "Game{name=" + name + ",state=" + state + ",winScore=" + winScore + ",duration=" + duration + ",useKits=" + useKits + ",showScore=" + showScore + ",pointBlock=" + pointBlock + ",pointItem=" + pointItem + "}";
+        return "Game{name=" + name + ",state=" + state + ",winScore=" + winScore + ",duration=" + duration + ",useKits=" + useKits + ",showScore=" + showScore + ",showScoreExp=" + showScoreExp + ",pointBlock=" + pointBlock + ",pointItem=" + pointItem + "}";
     }
 }
