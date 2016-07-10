@@ -40,6 +40,8 @@ public class TeamInfo {
     private LocationInfo spawn = null;
 
     private LocationInfo point = null;
+    private LocationInfo pos1 = null;
+    private LocationInfo pos2 = null;
     private int score = 0;
 
     /**
@@ -92,6 +94,14 @@ public class TeamInfo {
         if(pointSection != null) {
             point = new LocationInfo(pointSection);
         }
+        ConfigurationSection pos1Section = config.getConfigurationSection("pos1");
+        if(pos1Section != null) {
+            pos1 = new LocationInfo(pos1Section);
+        }
+        ConfigurationSection pos2Section = config.getConfigurationSection("pose2");
+        if(pos2Section != null) {
+            pos2 = new LocationInfo(pos2Section);
+        }
     }
 
     public Map<String, Object> serialize() {
@@ -101,6 +111,8 @@ public class TeamInfo {
         data.put("block", this.blockMaterial + ":" + this.blockData);
         data.put("spawn", this.spawn == null ? null : this.spawn.serialize());
         data.put("point", this.point == null ? null : this.point.serialize());
+        data.put("pos1", this.pos1 == null ? null : this.pos1.serialize());
+        data.put("pos2", this.pos2 == null ? null : this.pos2.serialize());
         return data;
     }
 
@@ -122,6 +134,22 @@ public class TeamInfo {
 
     public void setPoint(LocationInfo point) {
         this.point = point;
+    }
+
+    public LocationInfo getPos1() {
+        return pos1;
+    }
+
+    public void setPos1(LocationInfo point) {
+        this.pos1 = point;
+    }
+
+    public LocationInfo getPos2() {
+        return pos2;
+    }
+
+    public void setPos2(LocationInfo point) {
+        this.pos2 = point;
     }
 
     public boolean inTeam(Player player) {
