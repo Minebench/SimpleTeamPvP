@@ -5,6 +5,7 @@ import de.themoep.simpleteampvp.commands.KitSubCommand;
 import de.themoep.simpleteampvp.commands.PluginCommandExecutor;
 import de.themoep.simpleteampvp.commands.AdminSubCommand;
 import de.themoep.simpleteampvp.commands.TeamSubCommand;
+import de.themoep.simpleteampvp.games.CtwGame;
 import de.themoep.simpleteampvp.games.GameState;
 import de.themoep.simpleteampvp.games.SimpleTeamPvPGame;
 import de.themoep.simpleteampvp.games.XmasGame;
@@ -103,7 +104,9 @@ public class SimpleTeamPvP extends JavaPlugin {
                 }
             }
         }
-        new XmasGame(this);
+
+        registerGame("xmas", new XmasGame(this));;
+        registerGame("ctw", new CtwGame(this));
         getLogger().log(Level.INFO, "Loaded " + kitMap.size() + " kits from the config!");
     }
 
@@ -189,13 +192,28 @@ public class SimpleTeamPvP extends JavaPlugin {
     }
 
     /**
-     * Get the team by the block a player is standing on
-     * @param block
+     * Get the team by an item
+     * @return The team, null of none found
+     */
+    public TeamInfo getTeam(ItemStack item) {
+        return getTeam(item.getType(), item.getData().getData());
+    }
+
+    /**
+     * Get the team by a block
      * @return The team, null of none found
      */
     public TeamInfo getTeam(Block block) {
+        return getTeam(block.getType(), block.getState().getData().getData());
+    }
+
+    /**
+     * Get the team by a block or item
+     * @return The team, null of none found
+     */
+    public TeamInfo getTeam(Material mat, byte data) {
         for(TeamInfo team : teamMap.values()) {
-            if(team.getBlockMaterial() == block.getType() && team.getBlockData() == block.getData()) {
+            if(team.getBlockMaterial() == mat && team.getBlockData() == data) {
                 return team;
             }
         }
@@ -414,6 +432,13 @@ public class SimpleTeamPvP extends JavaPlugin {
         return false;
     }
 
+    public void broadcast(TeamInfo team, String msg) {
+        for (Player p : getServer().getOnlinePlayers()) {
+            if (team.containsPlayer(p)) {
+                p.sendMessage(msg);
+            }
+        }
+    }
 
     public void applyKit(KitInfo kit, Player player) {
         PlayerInventory playerInv = player.getInventory();
