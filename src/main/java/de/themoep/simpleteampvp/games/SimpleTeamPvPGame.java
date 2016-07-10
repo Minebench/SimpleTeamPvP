@@ -71,7 +71,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
     private String objectiveDisplay = "";
     private GameState state;
     private boolean useKits = false;
-    private boolean showScore;
+    private boolean showScore = false;
     private ItemStack pointItem = null;
     private int winScore = -1;
     private int duration = -1;
@@ -402,7 +402,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 winTeams.add(team);
             }
             Set<String> teamPlayers = team.getScoreboardTeam().getEntries();
-            if(plugin.getServer().getPluginManager().getPlugin("ServerTags") != null) {
+            if(plugin.getServer().getPluginManager().isPluginEnabled("ServerTags")) {
                 teamPlayers = new LinkedHashSet<String>();
                 ServerTags serverTags = (ServerTags) plugin.getServer().getPluginManager().getPlugin("ServerTags");
                 for(String name : team.getScoreboardTeam().getEntries()) {
