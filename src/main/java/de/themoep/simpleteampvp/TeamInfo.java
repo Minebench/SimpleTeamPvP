@@ -3,6 +3,7 @@ package de.themoep.simpleteampvp;
 import net.md_5.bungee.api.ChatColor;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
@@ -256,5 +257,32 @@ public class TeamInfo {
     public void setBlock(Block block) {
         blockMaterial = block.getType();
         blockData = block.getData();
+    }
+
+    public boolean regionContains(Location loc) {
+        if (pos1 == null || pos2 == null) {
+            return false;
+        }
+
+        if (!loc.getWorld().getName().equalsIgnoreCase(pos1.getWorldName())) {
+            return false;
+        }
+
+        double x = loc.getX();
+        double y = loc.getY();
+        double z = loc.getZ();
+
+        int x1 = Math.min(pos1.getBlockX(), pos2.getBlockX());
+        int y1 = Math.min(pos1.getBlockY(), pos2.getBlockY());
+        int z1 = Math.min(pos1.getBlockZ(), pos2.getBlockZ());
+        int x2 = Math.max(pos1.getBlockX(), pos2.getBlockX());
+        int y2 = Math.max(pos1.getBlockY(), pos2.getBlockY());
+        int z2 = Math.max(pos1.getBlockZ(), pos2.getBlockZ());
+
+        return x >= x1 && x <= x2 && y >= y1 && y <= y2 && z >= z1 && z <= z2;
+    }
+
+    public boolean containsPlayer(Player p) {
+        return scoreboardTeam.hasEntry(p.getName());
     }
 }
