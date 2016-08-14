@@ -187,7 +187,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             totalPlayers += team.getSize();
         }
         plugin.getLogger().log(Level.INFO, "plugin.getTeamMap().size(): " + plugin.getTeamMap().size());
-        int perfectSize = (int) Math.ceil((double) totalPlayers / (double) plugin.getTeamMap().size());
+        double perfectSize = totalPlayers / plugin.getTeamMap().size();
 
         plugin.getLogger().log(Level.INFO, "perfectSize: " + perfectSize);
 
@@ -227,33 +227,47 @@ public abstract class SimpleTeamPvPGame implements Listener {
             }
 
             for(TeamInfo team : plugin.getTeamMap().values()) {
-                if(team.getSize() <= perfectSize)
-                    continue;
-
-                for(int i = 0; i < perfectSize - team.getSize(); i++) {
-                    for(String name : team.getScoreboardTeam().getEntries()) {
-                        Player player = plugin.getServer().getPlayer(name);
-                        if(player == null)
-                            continue;
-
-                        String tag = "no server";
-                        ServerInfo serverInfo = serverTags.getPlayerServer(player);
-                        if(serverInfo != null) {
-                            tag = serverInfo.getTag();
-                        }
-
-                        if(tag.equals(teamTags.get(team.getName())))
-                            continue;
-
-                        plugin.getLogger().log(Level.INFO, "[ST] Removed " + player.getName() + " from " + team.getName());
-
-                        team.removePlayer(player);
-                        playersToJoin.add(player);
+                // Filter out players that come from another server than the majority of the team
+                // and remove them as long as the team is larger than the perfect size
+                for (String playerName : team.getScoreboardTeam().getEntries()){
+                    if(team.getSize() <= perfectSize)
                         break;
+
+                    Player player = plugin.getServer().getPlayer(playerName);
+                    if(player == null)
+                        continue;
+
+                    String tag = "no server";
+                    ServerInfo serverInfo = serverTags.getPlayerServer(player);
+                    if(serverInfo != null) {
+                        tag = serverInfo.getTag();
                     }
+
+                    if(tag.equals(teamTags.get(team.getName())))
+                        continue;
+
+                    plugin.getLogger().log(Level.INFO, "[ST] Removed " + player.getName() + " from " + team.getName());
+
+                    team.removePlayer(player);
+                    playersToJoin.add(player);
+                    break;
+                }
+
+                // Team still larger than the perfect size? Remove last joined player
+                List<String> teamMates = new ArrayList<String>(team.getScoreboardTeam().getEntries());
+                while (team.getSize() > perfectSize) {
+                    String name = teamMates.get(teamMates.size() - 1);
+                    Player player = plugin.getServer().getPlayer(name);
+                    if (player == null)
+                        continue;
+
+                    team.removePlayer(player);
+                    teamMates.remove(name);
+                    playersToJoin.add(player);
                 }
             }
 
+            // Add rest of players to teams from their server
             Iterator<Player> playerIterator = playersToJoin.iterator();
             while(playerIterator.hasNext()) {
                 Player player = playerIterator.next();
@@ -272,22 +286,21 @@ public abstract class SimpleTeamPvPGame implements Listener {
         }
         plugin.getLogger().log(Level.INFO, "Players to join after servertags: " + playersToJoin.size());
 
+        // Remove players from teams that have more than the perfect size
         for(TeamInfo team : plugin.getTeamMap().values()) {
-            if(team.getSize() <= perfectSize)
-                continue;
-
-            for(int i = 0; i < perfectSize - team.getSize(); i++) {
-                for(String name : team.getScoreboardTeam().getEntries()) {
-                    Player player = plugin.getServer().getPlayer(name);
-                    if(player == null)
-                        continue;
-
-                    plugin.getLogger().log(Level.INFO, "Removed " + player.getName() + " from " + team.getName());
-
-                    team.removePlayer(player);
-                    playersToJoin.add(player);
+            for (String playerName : team.getScoreboardTeam().getEntries()){
+                if(team.getSize() <= perfectSize)
                     break;
-                }
+
+                Player player = plugin.getServer().getPlayer(playerName);
+                if(player == null)
+                    continue;
+
+                plugin.getLogger().log(Level.INFO, "Removed " + player.getName() + " from " + team.getName());
+
+                team.removePlayer(player);
+                playersToJoin.add(player);
+                break;
             }
         }
 
