@@ -28,7 +28,7 @@ import java.util.List;
  */
 public class KitSubCommand extends SubCommand {
     public KitSubCommand(SimpleTeamPvP plugin) {
-        super(plugin, plugin.getName().toLowerCase(), "admin",
+        super(plugin, plugin.getName().toLowerCase(), "kit",
                 "[create|remove|list|info|seticon|items]",
                 "Create and edit kits"
         );
