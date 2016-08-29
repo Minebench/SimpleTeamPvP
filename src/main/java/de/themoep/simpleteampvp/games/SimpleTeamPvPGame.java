@@ -89,21 +89,26 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
         ConfigurationSection locSec = plugin.getConfig().getConfigurationSection("game." + name.toLowerCase() + ".pointitemchest");
         if(locSec != null) {
-            LocationInfo loc = new LocationInfo(locSec);
-            Block block = loc.getLocation().getBlock();
-            if(block.getState() instanceof Chest) {
-                Chest chest = (Chest) block.getState();
-                ItemStack item = null;
-                for(ItemStack i : chest.getBlockInventory().getContents()) {
-                    if(i != null) {
-                        item = i;
-                        break;
+            LocationInfo locInfo = new LocationInfo(locSec);
+            Location loc = locInfo.getLocation();
+            if (loc != null) {
+                Block block = loc.getBlock();
+                if (block.getState() instanceof Chest) {
+                    Chest chest = (Chest) block.getState();
+                    ItemStack item = null;
+                    for (ItemStack i : chest.getBlockInventory().getContents()) {
+                        if (i != null) {
+                            item = i;
+                            break;
+                        }
+                    }
+                    if (item != null) {
+                        pointItem = item;
+                        plugin.getLogger().log(Level.INFO, "Point item is " + pointItem.getType());
                     }
                 }
-                if(item != null) {
-                    pointItem = item;
-                    plugin.getLogger().log(Level.INFO, "Point item is " + pointItem.getType());
-                }
+            } else {
+                plugin.getLogger().log(Level.WARNING, "Could not get location for LocationInfo " + locInfo + ". Maybe the world doesn't exist anymore?");
             }
         }
 
