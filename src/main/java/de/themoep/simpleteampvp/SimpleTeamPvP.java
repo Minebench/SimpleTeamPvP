@@ -5,7 +5,6 @@ import de.themoep.simpleteampvp.commands.KitSubCommand;
 import de.themoep.simpleteampvp.commands.PluginCommandExecutor;
 import de.themoep.simpleteampvp.commands.AdminSubCommand;
 import de.themoep.simpleteampvp.commands.TeamSubCommand;
-import de.themoep.simpleteampvp.games.Ctw2Game;
 import de.themoep.simpleteampvp.games.CtwGame;
 import de.themoep.simpleteampvp.games.GameState;
 import de.themoep.simpleteampvp.games.SimpleTeamPvPGame;
@@ -108,7 +107,6 @@ public class SimpleTeamPvP extends JavaPlugin {
 
         registerGame("xmas", new XmasGame(this));;
         registerGame("ctw", new CtwGame(this));
-        registerGame("ctw2", new Ctw2Game(this));
         getLogger().log(Level.INFO, "Loaded " + kitMap.size() + " kits from the config!");
     }
 
