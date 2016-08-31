@@ -38,6 +38,9 @@ public class GameSubCommand extends SubCommand {
         if(plugin.getGame() != null && plugin.getGame().getPointBlock() == null) {
             sender.sendMessage(ChatColor.RED + "WARNING: No point item set!");
         }
+        if (args.length == 0) {
+            return false;
+        }
 
         if("new".equalsIgnoreCase(args[0])) {
             if(args.length > 1) {
