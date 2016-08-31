@@ -44,6 +44,7 @@ public class CtwGame extends SimpleTeamPvPGame {
     public CtwGame(SimpleTeamPvP plugin) {
         super(plugin, "ctw");
         showScore(true);
+        useKits(true);
     }
 
     @Override
