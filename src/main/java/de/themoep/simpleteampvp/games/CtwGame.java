@@ -45,6 +45,10 @@ public class CtwGame extends SimpleTeamPvPGame {
         super(plugin, "ctw");
     }
 
+    public CtwGame(SimpleTeamPvP plugin, String name) {
+        super(plugin, name);
+    }
+
     @Override
     public boolean start() {
         setObjectiveDisplay(ChatColor.WHITE + "Time: " + ChatColor.GREEN + "%time%" + ChatColor.WHITE);
