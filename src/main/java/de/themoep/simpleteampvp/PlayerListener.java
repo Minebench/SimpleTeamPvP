@@ -72,21 +72,6 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOW)
-    public void onBlockPlace(BlockPlaceEvent event) {
-        event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
-    }
-
-    @EventHandler(priority = EventPriority.LOW)
-    public void onBlockBreak(BlockBreakEvent event) {
-        event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
-    }
-
-    @EventHandler(priority = EventPriority.LOW)
-    public void onInteract(PlayerInteractEntityEvent event) {
-        event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
-    }
-
-    @EventHandler(priority = EventPriority.LOW)
     public void onDamage(EntityDamageEvent event) {
         if(event.getEntity() instanceof Player && plugin.getGame() != null && plugin.getGame().getState() != GameState.DESTROYED) {
             event.setCancelled(plugin.getTeam((Player) event.getEntity()) == null);
@@ -96,21 +81,6 @@ public class PlayerListener implements Listener {
     @EventHandler(priority = EventPriority.LOW)
     public void onFoodChange(FoodLevelChangeEvent event) {
         event.setCancelled(true);
-    }
-
-    @EventHandler(priority = EventPriority.LOW)
-    public void onInteract(PlayerInteractEvent event) {
-        if(event.getAction() == Action.RIGHT_CLICK_BLOCK && !event.getPlayer().isSneaking()) {
-            if(event.getClickedBlock().getState() instanceof InventoryHolder
-                    || event.getClickedBlock().getType() == Material.BED_BLOCK
-                    || event.getClickedBlock().getType() == Material.TRAP_DOOR
-                    ) {
-                event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
-            }
-        }
-        if((event.getAction() == Action.PHYSICAL) && event.getClickedBlock().getType() == Material.SOIL) {
-            event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
-        }
     }
 
     @EventHandler(priority = EventPriority.LOW)

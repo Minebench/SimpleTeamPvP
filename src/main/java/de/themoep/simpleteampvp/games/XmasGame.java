@@ -6,14 +6,18 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Team;
@@ -137,7 +141,6 @@ public class XmasGame extends SimpleTeamPvPGame {
         }
     }
 
-
     @EventHandler
     public void onPointClick(PlayerInteractEvent event) {
         if(getState() != GameState.RUNNING)
@@ -145,6 +148,18 @@ public class XmasGame extends SimpleTeamPvPGame {
 
         if(event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK)
             return;
+
+        if(event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            if(event.getClickedBlock().getState() instanceof InventoryHolder
+                    || event.getClickedBlock().getType() == Material.BED_BLOCK
+                    || event.getClickedBlock().getType() == Material.TRAP_DOOR
+                    ) {
+                event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
+            }
+        }
+        if((event.getAction() == Action.PHYSICAL) && event.getClickedBlock().getType() == Material.SOIL) {
+            event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
+        }
 
         if(getPointItem() == null)
             return;
@@ -205,6 +220,30 @@ public class XmasGame extends SimpleTeamPvPGame {
                 plugin.getLogger().log(Level.WARNING, "Point item is null!");
             }
         }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onBlockPlace(BlockPlaceEvent event) {
+        if(getState() != GameState.RUNNING)
+            return;
+
+        event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onBlockBreak(BlockBreakEvent event) {
+        if(getState() != GameState.RUNNING)
+            return;
+
+        event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onInteract(PlayerInteractEntityEvent event) {
+        if(getState() != GameState.RUNNING)
+            return;
+
+        event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
     }
 
     @Override
