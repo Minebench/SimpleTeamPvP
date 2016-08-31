@@ -367,7 +367,11 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 Player player = plugin.getServer().getPlayer(name);
                 if(player != null) {
                     if(useKits) {
-                        plugin.getKitGui().show(player);
+                        if (plugin.getKitMap().size() > 1) {
+                            plugin.getKitGui().show(player);
+                        } else {
+                            plugin.applyKit(plugin.getKitMap().values().iterator().next(), player);
+                        }
                     }
                     player.teleport(spawnLocation);
                     player.setBedSpawnLocation(spawnLocation, true);
@@ -581,7 +585,11 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 // We need to wait a tick after respawning to show a chest gui
                 plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
                     public void run() {
-                        plugin.getKitGui().show(player);
+                        if (plugin.getKitMap().size() > 1) {
+                            plugin.getKitGui().show(player);
+                        } else {
+                            plugin.applyKit(plugin.getKitMap().values().iterator().next(), player);
+                        }
                     }
                 }, 1L);
             }
