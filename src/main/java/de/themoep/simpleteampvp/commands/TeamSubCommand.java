@@ -40,6 +40,10 @@ public class TeamSubCommand extends SubCommand {
 
     @Override
     public boolean execute(CommandSender sender, String[] args) {
+        if (args.length == 0) {
+            return false;
+        }
+
         if("create".equalsIgnoreCase(args[0])) {
             if(args.length > 1) {
                 if(plugin.getTeam(args[1]) == null) {
