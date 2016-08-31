@@ -99,7 +99,7 @@ public class TeamInfo {
         if(pos1Section != null) {
             pos1 = new LocationInfo(pos1Section);
         }
-        ConfigurationSection pos2Section = config.getConfigurationSection("pose2");
+        ConfigurationSection pos2Section = config.getConfigurationSection("pos2");
         if(pos2Section != null) {
             pos2 = new LocationInfo(pos2Section);
         }
