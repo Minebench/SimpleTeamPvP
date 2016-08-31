@@ -236,7 +236,7 @@ public class TeamSubCommand extends SubCommand {
                             sender.sendMessage(ChatColor.RED + type + " is not a valid team location setting. Valid ones are spawn, point, pos1 or pos2!");
                             return true;
                         }
-                        sender.sendMessage(ChatColor.GREEN + "Set " + type + " location of team " + ChatColor.WHITE + teamInfo.getName() + ChatColor.GREEN + " to " + ChatColor.WHITE + teamInfo.getSpawn());
+                        sender.sendMessage(ChatColor.GREEN + "Set " + type + " location of team " + ChatColor.WHITE + teamInfo.getName() + ChatColor.GREEN + " to " + ChatColor.WHITE + loc);
                         plugin.toConfig(teamInfo);
                     } else {
                         sender.sendMessage(ChatColor.RED + "Could not set " + type + " location for team " + ChatColor.WHITE + teamInfo.getName());
