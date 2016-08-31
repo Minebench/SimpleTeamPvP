@@ -341,7 +341,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
         for(TeamInfo team : plugin.getTeamMap().values()) {
             Set<String> teamPlayers = team.getScoreboardTeam().getEntries();
-            if(plugin.getServer().getPluginManager().getPlugin("ServerTags") != null) {
+            if(plugin.getServer().getPluginManager().isPluginEnabled("ServerTags")) {
                 teamPlayers = new LinkedHashSet<String>();
                 ServerTags serverTags = (ServerTags) plugin.getServer().getPluginManager().getPlugin("ServerTags");
                 for(String name : team.getScoreboardTeam().getEntries()) {
