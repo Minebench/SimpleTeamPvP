@@ -29,7 +29,7 @@ import java.util.List;
 public class KitSubCommand extends SubCommand {
     public KitSubCommand(SimpleTeamPvP plugin) {
         super(plugin, plugin.getName().toLowerCase(), "kit",
-                "[create|remove|list|info|seticon|items]",
+                "[gui|get|create|remove|list|info|seticon|items]",
                 "Create and edit kits"
         );
     }
@@ -43,6 +43,31 @@ public class KitSubCommand extends SubCommand {
                     plugin.getKitGui().show((Player) sender);
                 } else {
                     sender.sendMessage(ChatColor.RED + "This command cannot be run by the console!");
+                }
+
+            } else if("get".equalsIgnoreCase(args[0])) {
+                if (args.length > 1) {
+                    if (sender instanceof Player) {
+                        String name = args[1];
+                        for (int i = 2; i < args.length; i++) {
+                            name += " " + args[i];
+                        }
+                        if (name.toCharArray()[0] == '"' && name.toCharArray()[name.length() - 1] == '"') {
+                            name = name.substring(1, name.length() - 2);
+                        }
+                        name = name.replace('_', ' ');
+                        KitInfo kit = plugin.getKit(name);
+                        if (kit != null) {
+                            plugin.applyKit(kit, (Player) sender);
+                            sender.sendMessage(ChatColor.GREEN + "You now have the kit " + ChatColor.YELLOW + kit.getName());
+                        } else {
+                            sender.sendMessage(ChatColor.RED + "No kit with the name " + ChatColor.WHITE + name + ChatColor.RED + " exists!");
+                        }
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "This command cannot be run by the console!");
+                    }
+                } else {
+                    sender.sendMessage("Usage: /" + getCommand() + " kit get <name...>");
                 }
 
             } else if("create".equalsIgnoreCase(args[0])) {
