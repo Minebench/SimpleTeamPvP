@@ -192,7 +192,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             totalPlayers += team.getSize();
         }
         plugin.getLogger().log(Level.INFO, "plugin.getTeamMap().size(): " + plugin.getTeamMap().size());
-        double perfectSize = totalPlayers / plugin.getTeamMap().size();
+        double perfectSize = (double) totalPlayers / (double) plugin.getTeamMap().size();
 
         plugin.getLogger().log(Level.INFO, "perfectSize: " + perfectSize);
 
