@@ -49,7 +49,7 @@ public class CtwGame extends SimpleTeamPvPGame {
 
     @Override
     public boolean start() {
-        setObjectiveDisplay(ChatColor.WHITE + "Time: " + ChatColor.GREEN + "%time%" + ChatColor.WHITE);
+        setObjectiveDisplay(ChatColor.WHITE + "Zeit: " + ChatColor.GREEN + "%time%" + ChatColor.WHITE);
         for (TeamInfo team : plugin.getTeamMap().values()) {
             team.getScoreboardTeam().setAllowFriendlyFire(false);
             team.getScoreboardTeam().setCanSeeFriendlyInvisibles(true);
