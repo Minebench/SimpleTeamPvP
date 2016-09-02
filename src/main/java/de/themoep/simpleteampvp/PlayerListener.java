@@ -55,7 +55,7 @@ public class PlayerListener implements Listener {
             // We need to wait a tick after login...
             plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
                 public void run() {
-                    player.teleport(player.getWorld().getSpawnLocation());
+                    player.teleport(plugin.getServer().getWorlds().get(0).getSpawnLocation());
                     player.setBedSpawnLocation(player.getWorld().getSpawnLocation(), true);
                     player.getInventory().clear();
                     player.getInventory().setHelmet(null);
