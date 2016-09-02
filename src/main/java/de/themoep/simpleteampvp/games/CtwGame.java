@@ -43,7 +43,7 @@ public class CtwGame extends SimpleTeamPvPGame {
 
     private Objective carriedObjective;
 
-    Set<LocationInfo> artificialWool = new HashSet<LocationInfo>();
+    Set<Integer> artificialWool = new HashSet<Integer>();
 
     public CtwGame(SimpleTeamPvP plugin) {
         super(plugin, "ctw");
@@ -94,7 +94,7 @@ public class CtwGame extends SimpleTeamPvPGame {
         }
 
         if (!event.getPlayer().hasPermission("simpleteampvp.bypass")) {
-            artificialWool.add(new LocationInfo(event.getBlock().getLocation()));
+            artificialWool.add(event.getBlock().getLocation().hashCode());
         }
 
         if (team.regionContains(event.getBlock().getLocation())) {
@@ -124,7 +124,7 @@ public class CtwGame extends SimpleTeamPvPGame {
 
         if (team.equals(woolTeam)
                 && !event.getPlayer().hasPermission("simpleteampvp.bypass")
-                && !artificialWool.contains(new LocationInfo(event.getBlock().getLocation()))
+                && !artificialWool.contains(event.getBlock().getLocation().hashCode())
                 ) {
             event.getPlayer().sendMessage(ChatColor.RED + "Du kannst die Wolle deines eigenen Teams nicht abbauen!");
             event.setCancelled(true);
