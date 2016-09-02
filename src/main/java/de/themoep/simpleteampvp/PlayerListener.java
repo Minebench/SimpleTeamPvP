@@ -80,7 +80,9 @@ public class PlayerListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void onFoodChange(FoodLevelChangeEvent event) {
-        event.setCancelled(true);
+        if(event.getEntity() instanceof Player && plugin.getGame() != null && plugin.getGame().getState() != GameState.DESTROYED) {
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler(priority = EventPriority.LOW)

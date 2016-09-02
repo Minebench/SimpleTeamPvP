@@ -10,6 +10,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
@@ -244,6 +245,14 @@ public class XmasGame extends SimpleTeamPvPGame {
             return;
 
         event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onFoodChange(FoodLevelChangeEvent event) {
+        if(getState() != GameState.RUNNING)
+            return;
+
+        event.setCancelled(true);
     }
 
     @Override
