@@ -519,8 +519,8 @@ public abstract class SimpleTeamPvPGame implements Listener {
                             player.setExp(0);
                             player.setHealth(player.getMaxHealth());
                             player.updateInventory();
-                            player.teleport(player.getWorld().getSpawnLocation());
-                            player.setBedSpawnLocation(player.getWorld().getSpawnLocation(), true);
+                            player.teleport(plugin.getServer().getWorlds().get(0).getSpawnLocation());
+                            player.setBedSpawnLocation(plugin.getServer().getWorlds().get(0).getSpawnLocation(), true);
                         }
                     }
                 }
