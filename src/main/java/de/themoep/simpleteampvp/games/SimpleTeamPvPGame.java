@@ -236,7 +236,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 // Filter out players that come from another server than the majority of the team
                 // and remove them as long as the team is larger than the perfect size
                 for (String playerName : team.getScoreboardTeam().getEntries()){
-                    if(team.getSize() <= perfectSize)
+                    if(team.getSize() <= perfectSize + 0.5)
                         break;
 
                     Player player = plugin.getServer().getPlayer(playerName);
@@ -261,7 +261,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
                 // Team still larger than the perfect size? Remove last joined player
                 List<String> teamMates = new ArrayList<String>(team.getScoreboardTeam().getEntries());
-                while (team.getSize() > perfectSize) {
+                while (team.getSize() > perfectSize + 0.5) {
                     String name = teamMates.get(teamMates.size() - 1);
                     Player player = plugin.getServer().getPlayer(name);
                     if (player == null)
@@ -296,7 +296,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         // Remove players from teams that have more than the perfect size
         for(TeamInfo team : plugin.getTeamMap().values()) {
             for (String playerName : team.getScoreboardTeam().getEntries()){
-                if(team.getSize() <= perfectSize)
+                if(team.getSize() <= perfectSize + 0.5)
                     break;
 
                 Player player = plugin.getServer().getPlayer(playerName);
