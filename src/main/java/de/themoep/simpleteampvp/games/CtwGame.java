@@ -1,5 +1,6 @@
 package de.themoep.simpleteampvp.games;
 
+import de.themoep.simpleteampvp.KitInfo;
 import de.themoep.simpleteampvp.LocationInfo;
 import de.themoep.simpleteampvp.SimpleTeamPvP;
 import de.themoep.simpleteampvp.TeamInfo;
@@ -11,12 +12,15 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Team;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -184,6 +188,20 @@ public class CtwGame extends SimpleTeamPvPGame {
         }
 
         resetCarried(event.getEntity());
+
+        if (!event.getKeepInventory() && plugin.getKitMap().size() == 1) {
+            KitInfo kit = plugin.getKitMap().values().iterator().next();
+            event.setKeepInventory(true);
+            for (ItemStack item : event.getEntity().getInventory().getContents()) {
+                if (item != null &&
+                        !item.isSimilar(kit.getHelmet()) &&
+                        !item.isSimilar(kit.getChest()) &&
+                        !item.isSimilar(kit.getLegs()) &&
+                        !item.isSimilar(kit.getBoots())) {
+                    event.getEntity().getWorld().dropItem(event.getEntity().getLocation(), item);
+                }
+            }
+        }
     }
 
     private void resetCarried(Player player) {
