@@ -73,11 +73,11 @@ public class LocationInfo implements Cloneable {
     }
 
     public int getBlockY() {
-        return NumberConversions.floor(x);
+        return NumberConversions.floor(y);
     }
 
     public int getBlockZ() {
-        return NumberConversions.floor(x);
+        return NumberConversions.floor(z);
     }
 
     public float getYaw() {
