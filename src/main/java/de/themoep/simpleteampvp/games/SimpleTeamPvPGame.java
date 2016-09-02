@@ -192,7 +192,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         for(TeamInfo team : plugin.getTeamMap().values()) {
             totalPlayers += team.getSize();
         }
-        plugin.getLogger().log(Level.INFO, "plugin.getTeamMap().size(): " + plugin.getTeamMap().size());
+        plugin.getLogger().log(Level.INFO, "Number of teams: " + plugin.getTeamMap().size());
         double perfectSize = (double) totalPlayers / (double) plugin.getTeamMap().size();
 
         plugin.getLogger().log(Level.INFO, "perfectSize: " + perfectSize);
@@ -268,6 +268,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                         continue;
 
                     team.removePlayer(player);
+                    plugin.getLogger().log(Level.INFO, "[ST] Removed " + player.getName() + " from " + team.getName());
                     teamMates.remove(name);
                     playersToJoin.add(player);
                 }
