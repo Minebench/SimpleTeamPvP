@@ -48,7 +48,7 @@ public class KitSubCommand extends SubCommand {
             } else if("create".equalsIgnoreCase(args[0])) {
                 if(args.length > 1) {
                     String name = args[1];
-                    for(int i = 3; i < args.length; i ++) {
+                    for(int i = 2; i < args.length; i ++) {
                         name += " " + args[i];
                     }
                     if(name.toCharArray()[0] == '"' && name.toCharArray()[name.length() - 1] == '"') {
@@ -69,7 +69,7 @@ public class KitSubCommand extends SubCommand {
             } else if("remove".equalsIgnoreCase(args[0])) {
                 if(args.length > 1) {
                     String name = args[1];
-                    for(int i = 3; i < args.length; i ++) {
+                    for(int i = 2; i < args.length; i ++) {
                         name += " " + args[i];
                     }
                     if(name.toCharArray()[0] == '"' && name.toCharArray()[name.length() - 1] == '"') {
@@ -94,7 +94,7 @@ public class KitSubCommand extends SubCommand {
             } else if("info".equalsIgnoreCase(args[0])) {
                 if(args.length > 1) {
                     String name = args[1];
-                    for(int i = 3; i < args.length; i ++) {
+                    for(int i = 2; i < args.length; i ++) {
                         name += " " + args[i];
                     }
                     if(name.toCharArray()[0] == '"' && name.toCharArray()[name.length() - 1] == '"') {
@@ -129,7 +129,7 @@ public class KitSubCommand extends SubCommand {
                 if(sender instanceof Player) {
                     if(args.length > 1) {
                         String name = args[1];
-                        for(int i = 3; i < args.length; i ++) {
+                        for(int i = 2; i < args.length; i ++) {
                             name += " " + args[i];
                         }
                         if(name.toCharArray()[0] == '"' && name.toCharArray()[name.length() - 1] == '"') {
@@ -157,7 +157,7 @@ public class KitSubCommand extends SubCommand {
                 if(sender instanceof Player) {
                     if(args.length > 1) {
                         String name = args[2];
-                        for(int i = 4; i < args.length; i ++) {
+                        for(int i = 3; i < args.length; i ++) {
                             name += " " + args[i];
                         }
                         if(name.toCharArray()[0] == '"' && name.toCharArray()[name.length() - 1] == '"') {
