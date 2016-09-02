@@ -71,6 +71,12 @@ public class CtwGame extends SimpleTeamPvPGame {
         return super.start();
     }
 
+    @Override
+    public void stop() {
+        carriedObjective.unregister();
+        super.stop();
+    }
+
     @EventHandler
     public void onWoolBlockPlace(BlockPlaceEvent event) {
         if (getState() != GameState.RUNNING) {
