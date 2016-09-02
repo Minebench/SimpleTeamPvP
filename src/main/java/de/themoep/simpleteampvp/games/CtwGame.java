@@ -202,6 +202,7 @@ public class CtwGame extends SimpleTeamPvPGame {
                     event.getEntity().getWorld().dropItem(event.getEntity().getLocation(), item);
                 }
             }
+            event.getEntity().getInventory().clear();
         }
     }
 
