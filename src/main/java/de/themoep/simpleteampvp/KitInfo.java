@@ -186,4 +186,11 @@ public class KitInfo {
         data.put("items", this.items);
         return data;
     }
+
+    public boolean isArmor(ItemStack item) {
+        return (getHelmet() != null && item.getType() == getHelmet().getType())
+                || (getChest() != null && item.getType() == getChest().getType())
+                || (getLegs() != null && item.getType() == getLegs().getType())
+                || (getBoots() != null && item.getType() == getBoots().getType());
+    }
 }

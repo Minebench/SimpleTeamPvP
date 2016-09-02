@@ -194,11 +194,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             KitInfo kit = plugin.getKitMap().values().iterator().next();
             event.setKeepInventory(true);
             for (ItemStack item : event.getEntity().getInventory().getContents()) {
-                if (item != null &&
-                        !item.isSimilar(kit.getHelmet()) &&
-                        !item.isSimilar(kit.getChest()) &&
-                        !item.isSimilar(kit.getLegs()) &&
-                        !item.isSimilar(kit.getBoots())) {
+                if (item != null && !kit.isArmor(item)) {
                     event.getEntity().getWorld().dropItem(event.getEntity().getLocation(), item);
                 }
             }
