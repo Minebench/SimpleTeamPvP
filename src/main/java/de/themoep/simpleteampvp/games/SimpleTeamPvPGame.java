@@ -41,6 +41,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -320,6 +321,17 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     break;
                 }
             }
+        }
+
+        List<TeamInfo> teams = new ArrayList<TeamInfo>(plugin.getTeamMap().values());
+        Random random = new Random();
+        for(Player player : playersToJoin) {
+            TeamInfo team = teams.get(random.nextInt(teams.size()));
+            while (team.getSize() == 0) {
+                team = teams.get(random.nextInt(teams.size()));
+            }
+            team.addPlayer(player);
+            plugin.getLogger().log(Level.INFO, "Added " + player.getName() + " to " + team.getName() + " by random!");
         }
         plugin.getLogger().log(Level.INFO, "All players joined! (" + playersToJoin.size() + ")");
 
