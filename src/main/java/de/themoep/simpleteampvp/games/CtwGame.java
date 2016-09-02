@@ -87,7 +87,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             return;
         }
 
-        if (team.equals(woolTeam) && !event.getPlayer().hasPermission("simpleteampvp.bypass")) {
+        if (!event.getPlayer().hasPermission("simpleteampvp.bypass")) {
             artificialWool.add(new LocationInfo(event.getBlock().getLocation()));
         }
 
