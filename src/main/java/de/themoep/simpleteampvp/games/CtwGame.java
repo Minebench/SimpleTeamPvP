@@ -100,7 +100,7 @@ public class CtwGame extends SimpleTeamPvPGame {
 
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onWoolBlockBreak(BlockBreakEvent event) {
         if (getState() != GameState.RUNNING) {
             return;
@@ -121,6 +121,7 @@ public class CtwGame extends SimpleTeamPvPGame {
                 && !artificialWool.contains(new LocationInfo(event.getBlock().getLocation()))
                 ) {
             event.getPlayer().sendMessage(ChatColor.RED + "Du kannst die Wolle deines eigenen Teams nicht abbauen!");
+            event.setCancelled(true);
             return;
         }
 
