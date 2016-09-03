@@ -1,14 +1,16 @@
 package de.themoep.simpleteampvp.games;
 
 import de.themoep.simpleteampvp.KitInfo;
-import de.themoep.simpleteampvp.LocationInfo;
 import de.themoep.simpleteampvp.SimpleTeamPvP;
 import de.themoep.simpleteampvp.TeamInfo;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
@@ -18,7 +20,6 @@ import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Team;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -154,6 +155,44 @@ public class CtwGame extends SimpleTeamPvPGame {
             }
         }
 
+    }
+
+    @EventHandler
+    public void onWoolBlockExplode(BlockExplodeEvent event) {
+        handleBlocks(event.blockList());
+    }
+
+    @EventHandler
+    public void onWoolBlockExplode(EntityExplodeEvent event) {
+        handleBlocks(event.blockList());
+    }
+
+    private void handleBlocks(List<Block> blocklist) {
+        if (getState() != GameState.RUNNING) {
+            return;
+        }
+
+        TeamInfo informTeam = null;
+
+        for (Block block : blocklist) {
+            TeamInfo woolTeam = plugin.getTeam(block);
+            if (woolTeam == null) {
+                continue;
+            }
+
+            for (TeamInfo t : plugin.getTeamMap().values()) {
+                if (t.regionContains(block.getLocation())) {
+                    decrementScore(t);
+                    informTeam = t;
+                    break;
+                }
+            }
+        }
+
+        if (informTeam != null) {
+            plugin.broadcast(informTeam, ChatColor.DARK_RED + "ACHTUNG: "
+                    + ChatColor.RED + " Eure Wollkammer ist in die Luft geflogen!");
+        }
     }
 
     @EventHandler
