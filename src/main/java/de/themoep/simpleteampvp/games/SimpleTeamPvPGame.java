@@ -132,7 +132,11 @@ public abstract class SimpleTeamPvPGame implements Listener {
         state = GameState.INITIATED;
         pointObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().getObjective("teamPoints");
         if(pointObjective != null) {
-            pointObjective.unregister();
+            try {
+                pointObjective.unregister();
+            } catch (IllegalStateException e) {
+                // wat
+            }
         }
         pointObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().registerNewObjective("teamPoints", "dummy");
         setObjectiveDisplay("Points (%winscore%)");

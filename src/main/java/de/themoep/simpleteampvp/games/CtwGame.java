@@ -63,7 +63,11 @@ public class CtwGame extends SimpleTeamPvPGame {
 
         carriedObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().getObjective("carriedPoints");
         if(carriedObjective != null) {
-            carriedObjective.unregister();
+            try {
+                carriedObjective.unregister();
+            } catch (IllegalStateException e) {
+                // wat
+            }
         }
         carriedObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().registerNewObjective("carriedPoints", "dummy");
         carriedObjective.setDisplayName("Wolle");
@@ -73,8 +77,15 @@ public class CtwGame extends SimpleTeamPvPGame {
 
     @Override
     public void stop() {
-        carriedObjective.unregister();
-        super.stop();
+            super.stop();
+        if (carriedObjective != null) {
+            try {
+                carriedObjective.unregister();
+            } catch (IllegalStateException e) {
+                // wat
+            }
+            carriedObjective = null;
+        }
     }
 
     @EventHandler
