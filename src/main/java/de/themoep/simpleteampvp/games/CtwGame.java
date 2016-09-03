@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.block.BlockPistonEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -192,6 +193,20 @@ public class CtwGame extends SimpleTeamPvPGame {
         if (informTeam != null) {
             plugin.broadcast(informTeam, ChatColor.DARK_RED + "ACHTUNG: "
                     + ChatColor.RED + " Eure Wollkammer ist in die Luft geflogen!");
+        }
+    }
+
+    @EventHandler
+    public void onWoolPistonPush(BlockPistonEvent event) {
+        if (getState() != GameState.RUNNING) {
+            return;
+        }
+
+        for (TeamInfo t : plugin.getTeamMap().values()) {
+            if (t.regionContains(event.getBlock().getLocation()) || t.regionContains(event.getBlock().getRelative(event.getDirection()).getLocation())) {
+                event.setCancelled(true);
+                break;
+            }
         }
     }
 
