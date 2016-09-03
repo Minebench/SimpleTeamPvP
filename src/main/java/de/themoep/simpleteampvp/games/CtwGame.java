@@ -225,7 +225,9 @@ public class CtwGame extends SimpleTeamPvPGame {
 
     private void decrementCarried(Player player, int amount) {
         Score score = carriedObjective.getScore(player.getName());
-        score.setScore(score.getScore() - amount);
+        if (score.getScore() > 0) {
+            score.setScore(score.getScore() - amount);
+        }
     }
 
     private void incrementCarried(Player player, int amount) {
