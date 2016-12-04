@@ -5,6 +5,7 @@ import de.themoep.simpleteampvp.commands.KitSubCommand;
 import de.themoep.simpleteampvp.commands.PluginCommandExecutor;
 import de.themoep.simpleteampvp.commands.AdminSubCommand;
 import de.themoep.simpleteampvp.commands.TeamSubCommand;
+import de.themoep.simpleteampvp.games.CookieWarsGame;
 import de.themoep.simpleteampvp.games.CtwGame;
 import de.themoep.simpleteampvp.games.GameState;
 import de.themoep.simpleteampvp.games.SimpleTeamPvPGame;
@@ -105,8 +106,9 @@ public class SimpleTeamPvP extends JavaPlugin {
             }
         }
 
-        registerGame("xmas", new XmasGame(this));;
-        registerGame("ctw", new CtwGame(this));
+        registerGame(new XmasGame(this));;
+        registerGame(new CtwGame(this));
+        registerGame(new CookieWarsGame(this));
         getLogger().log(Level.INFO, "Loaded " + kitMap.size() + " kits from the config!");
     }
 
@@ -302,11 +304,10 @@ public class SimpleTeamPvP extends JavaPlugin {
 
     /**
      * Register a game with the plugin
-     * @param name The name of the game
      * @param game The game's object
      */
-    public void registerGame(String name, SimpleTeamPvPGame game) {
-        gameMap.put(name.toLowerCase(), game);
+    public void registerGame(SimpleTeamPvPGame game) {
+        gameMap.put(game.getName().toLowerCase(), game);
     }
 
     /**

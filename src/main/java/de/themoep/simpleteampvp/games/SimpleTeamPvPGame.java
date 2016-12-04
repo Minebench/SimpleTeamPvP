@@ -75,6 +75,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
     private boolean showScore = false;
     private boolean showScoreExp = false;
     private ItemStack pointItem = null;
+    private Set<Material> ingredients = new HashSet<>();
     private int winScore = -1;
     private int duration = -1;
     private GameTimer timer = null;
@@ -129,6 +130,16 @@ public abstract class SimpleTeamPvPGame implements Listener {
             meta.setDisplayName("Point Item");
             pointItem.setItemMeta(meta);
         }
+
+        for (String ingredient : plugin.getConfig().getStringList("game." + this.name + ".ingredients")) {
+            try {
+                ingredients.add(Material.valueOf(ingredient.toUpperCase()));
+                plugin.getLogger().log(Level.INFO, "Added " + ingredient);
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().log(Level.WARNING, ingredient + " is not a valid Bukkit Material name?");
+            }
+        }
+
         state = GameState.INITIATED;
         pointObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().getObjective("teamPoints");
         if(pointObjective != null) {
@@ -692,6 +703,9 @@ public abstract class SimpleTeamPvPGame implements Listener {
         this.pointItem = pointItem;
     }
 
+    public Set<Material> getIngredients() {
+        return ingredients;
+    }
 
     public Objective getPointObjective() {
         return pointObjective;
