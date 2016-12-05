@@ -25,6 +25,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
@@ -67,29 +68,36 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     protected final SimpleTeamPvP plugin;
     private final String name;
-
-    private Objective pointObjective = null;
-    private String objectiveDisplay = "";
     private GameState state;
-    private boolean useKits = false;
-    private boolean showScore = false;
-    private boolean showScoreExp = false;
-    private ItemStack pointItem = null;
-    private Set<Material> ingredients = new HashSet<>();
-    private int winScore = -1;
-    private int duration = -1;
     private GameTimer timer = null;
-    private Material pointBlock = Material.AIR;
-    private Set<LocationInfo> pointBlockSet = new HashSet<LocationInfo>();
     private int regenId = -1;
     private BukkitTask teleportTask;
     private BukkitTask fwTask;
+    private Objective pointObjective = null;
+
+    /* --- Settings --- */
+    private boolean useKits;
+    private boolean showScore = false;
+    private boolean showScoreExp = false;
+    private boolean filterDrops;
+    private String objectiveDisplay = "";
+    private ItemStack pointItem = null;
+    private Set<Material> drops = new HashSet<>();
+    private Set<ItemStack> deathDrops = new HashSet<>();
+    private int winScore = -1;
+    private int duration = -1;
+    private Material pointBlock = Material.AIR;
+    private Set<LocationInfo> pointBlockSet = new HashSet<LocationInfo>();
 
     public SimpleTeamPvPGame(SimpleTeamPvP plugin, String name) {
         this.plugin = plugin;
         this.name = name.toLowerCase();
 
-        ConfigurationSection locSec = plugin.getConfig().getConfigurationSection("game." + name.toLowerCase() + ".pointitemchest");
+        plugin.getLogger().log(Level.INFO, "Initializing " + name + " game");
+
+        ConfigurationSection game = plugin.getConfig().getConfigurationSection("game." + getName());;
+
+        ConfigurationSection locSec = game.getConfigurationSection("pointitemchest");
         if(locSec != null) {
             LocationInfo locInfo = new LocationInfo(locSec);
             Location loc = locInfo.getLocation();
@@ -115,13 +123,27 @@ public abstract class SimpleTeamPvPGame implements Listener {
         }
 
         //pointItem = plugin.getConfig().getItemStack("game." + this.name + ".pointitem", null);
-        duration = plugin.getConfig().getInt("game." + this.name + ".duration", 0);
-        winScore = plugin.getConfig().getInt("game." + this.name + ".winscore", -1);
+        duration = game.getInt("duration", 0);
+        plugin.getLogger().log(Level.INFO, "Duration: " + duration);
+        winScore = game.getInt("winscore", -1);
+        plugin.getLogger().log(Level.INFO, "Winscore: " + winScore);
+        useKits = game.getBoolean("use-kits", false);
+        plugin.getLogger().log(Level.INFO, "Use kits: " + useKits);
+        showScore = game.getBoolean("show-score", false);
+        plugin.getLogger().log(Level.INFO, "Show score: " + showScore);
+        showScoreExp = game.getBoolean("score-in-exp-bar", false);
+        plugin.getLogger().log(Level.INFO, "Show score in exp bar: " + showScoreExp);
+        filterDrops = game.getBoolean("custom-death-drops", false);
+        plugin.getLogger().log(Level.INFO, "Custom death drops: " + filterDrops);
+        objectiveDisplay = ChatColor.translateAlternateColorCodes('&', game.getString("objective-display", ""));
+        plugin.getLogger().log(Level.INFO, "Objective display: " + objectiveDisplay);
+
         try {
-            pointBlock = Material.matchMaterial(plugin.getConfig().getString("game." + this.name + ".pointblock"));
+            pointBlock = Material.matchMaterial(game.getString("pointblock"));
+            plugin.getLogger().log(Level.INFO, "Point block: " + pointBlock);
         } catch (IllegalArgumentException e) {
             pointBlock = Material.AIR;
-            plugin.getLogger().log(Level.WARNING, plugin.getConfig().getString("game." + this.name + ".pointblock", "null") + "game." + this.name + ".pointblock is not a valid Material name");
+            plugin.getLogger().log(Level.WARNING, game.getString("pointblock", "null") + " is not a valid Material name for the point block");
         }
         if(pointItem == null) {
             plugin.getLogger().log(Level.WARNING, "No point item configured!");
@@ -131,12 +153,35 @@ public abstract class SimpleTeamPvPGame implements Listener {
             pointItem.setItemMeta(meta);
         }
 
-        for (String ingredient : plugin.getConfig().getStringList("game." + this.name + ".ingredients")) {
+        for (String ingredient : game.getStringList("drops")) {
+            plugin.getLogger().log(Level.INFO, "Loading Drops...");
             try {
-                ingredients.add(Material.valueOf(ingredient.toUpperCase()));
+                drops.add(Material.valueOf(ingredient.toUpperCase()));
                 plugin.getLogger().log(Level.INFO, "Added " + ingredient);
             } catch (IllegalArgumentException e) {
                 plugin.getLogger().log(Level.WARNING, ingredient + " is not a valid Bukkit Material name?");
+            }
+        }
+
+        for (String deathDrop : game.getStringList("death-drops")) {
+            plugin.getLogger().log(Level.INFO, "Loading DeathDrops...");
+            try {
+                int amount = 1;
+                String[] partsA = deathDrop.split(" ");
+                if (partsA.length > 1) {
+                    amount = Integer.parseInt(partsA[1]);
+                }
+                String[] partsB = partsA[0].split(":");
+                short damage = 0;
+                if (partsB.length > 1) {
+                    damage = Short.parseShort(partsB[1]);
+                }
+                deathDrops.add(new ItemStack(Material.valueOf(partsB[0].toUpperCase()), amount, damage));
+                plugin.getLogger().log(Level.INFO, "Added " + deathDrop);
+            } catch (NumberFormatException e) {
+                plugin.getLogger().log(Level.WARNING, deathDrop + " does contain an invalid number?");
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().log(Level.WARNING, deathDrop + " does not contain a valid Bukkit Material name?");
             }
         }
 
@@ -594,16 +639,61 @@ public abstract class SimpleTeamPvPGame implements Listener {
     }
 
     @EventHandler
+    public void onItemDrop(PlayerDropItemEvent event) {
+        if(getState() != GameState.RUNNING)
+            return;
+
+        if(event.getPlayer().hasPermission("simpleteampvp.bypass"))
+            return;
+
+        if(filterDrops && !getDrops().contains(event.getItemDrop().getItemStack().getType())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         if(getState() != GameState.RUNNING)
             return;
 
-        if(event.getEntity().hasPermission("simpleteampvp.bypass"))
+        Player player = event.getEntity();
+
+        if(player.hasPermission("simpleteampvp.bypass"))
             return;
 
-        TeamInfo team = plugin.getTeam(event.getEntity());
-        if(team != null) {
-            event.getEntity().setBedSpawnLocation(team.getSpawn().getLocation().add(0,1,0), true);
+        TeamInfo team = plugin.getTeam(player);
+        if(team == null)
+            return;
+
+        player.setBedSpawnLocation(team.getSpawn().getLocation().add(0,1,0), true);
+
+        for (ItemStack drop : getDeathDrops(team, player)) {
+            player.getWorld().dropItem(player.getLocation(), drop);
+        }
+
+        if(!event.getKeepLevel() && showScoreExp) {
+            event.setDroppedExp(0);
+            event.setKeepLevel(true);
+        }
+
+        if (filterDrops) {
+            if (event.getKeepInventory()) {
+                for (int i = 0; i < player.getInventory().getSize(); i++) {
+                    ItemStack item = player.getInventory().getItem(i);
+                    if (getDrops().contains(item.getType())) {
+                        player.getInventory().setItem(i, null);
+                        player.getLocation().getWorld().dropItem(player.getLocation(), item);
+                    }
+                }
+            } else {
+                Iterator<ItemStack> dropIterator = event.getDrops().iterator();
+                while (dropIterator.hasNext()) {
+                    ItemStack drop = dropIterator.next();
+                    if (!getDrops().contains(drop.getType())) {
+                        dropIterator.remove();
+                    }
+                }
+            }
         }
     }
 
@@ -703,8 +793,45 @@ public abstract class SimpleTeamPvPGame implements Listener {
         this.pointItem = pointItem;
     }
 
-    public Set<Material> getIngredients() {
-        return ingredients;
+    public Set<Material> getDrops() {
+        return drops;
+    }
+
+    public Set<ItemStack> getDeathDrops() {
+        return deathDrops;
+    }
+
+    public List<ItemStack> getDeathDrops(TeamInfo team, Player player) {
+        List<ItemStack> drops = new ArrayList<>();
+        for (ItemStack dropTemplate : getDeathDrops()) {
+            ItemStack drop = dropTemplate.clone();
+            if (drop.hasItemMeta()) {
+                ItemMeta meta = drop.getItemMeta();
+
+                if (meta.hasDisplayName()) {
+                    meta.setDisplayName(meta.getDisplayName()
+                            .replace("%teamColor%", team.getColor().toString())
+                            .replace("%teamName%", team.getName())
+                            .replace("%playerName%", player.getName())
+                    );
+                }
+
+                if (meta.hasLore()) {
+                    List<String> lore = new ArrayList<>();
+                    for (String loreText : meta.getLore()) {
+                        lore.add(loreText
+                                .replace("%teamColor%", team.getColor().toString())
+                                .replace("%teamName%", team.getName())
+                                .replace("%playerName%", player.getName())
+                        );
+                    }
+                    meta.setLore(lore);
+                }
+                drop.setItemMeta(meta);
+            }
+            drops.add(drop);
+        }
+        return drops;
     }
 
     public Objective getPointObjective() {

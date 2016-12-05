@@ -147,6 +147,10 @@ public class XmasGame extends SimpleTeamPvPGame {
         if(getState() != GameState.RUNNING)
             return;
 
+        if((event.getAction() == Action.PHYSICAL) && event.getClickedBlock().getType() == Material.SOIL) {
+            event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
+        }
+
         if(event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK)
             return;
 
@@ -157,9 +161,6 @@ public class XmasGame extends SimpleTeamPvPGame {
                     ) {
                 event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
             }
-        }
-        if((event.getAction() == Action.PHYSICAL) && event.getClickedBlock().getType() == Material.SOIL) {
-            event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
         }
 
         if(getPointItem() == null)
