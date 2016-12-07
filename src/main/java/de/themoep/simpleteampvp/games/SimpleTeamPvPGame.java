@@ -16,11 +16,9 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Animals;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
-import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -36,12 +34,18 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -83,19 +87,51 @@ public abstract class SimpleTeamPvPGame implements Listener {
     private Objective pointObjective = null;
 
     /* --- Settings --- */
-    private boolean useKits;
+    @GameConfigSetting(key = "use-kits")
+    private boolean useKits = false;
+
+    @GameConfigSetting(key = "show-score")
     private boolean showScore = false;
+
+    @GameConfigSetting(key = "score-in-exp-bar")
     private boolean showScoreExp = false;
-    private boolean filterDrops;
-    private boolean stopBuild;
-    private boolean stopInteract;
-    private String objectiveDisplay = "";
+
+    @GameConfigSetting(key = "custom-death-drops")
+    private boolean filterDrops = false;
+
+    @GameConfigSetting(key = "stop-build")
+    private boolean stopBuild = false;
+
+    @GameConfigSetting(key = "stop-interact")
+    private boolean stopInteract = false;
+
+    @GameConfigSetting(key = "respawn-resistance")
+    private int respawnResistance = 5;
+
+    @GameConfigSetting(key = "objective-display")
+    private String objectiveDisplay = "Points (%winscore%)";
+
+    @GameConfigSetting(key = "pointitem")
     private ItemStack pointItem = null;
+
+    @GameConfigSetting(key = "drops")
     private Set<String> drops = new HashSet<>();
+
+    @GameConfigSetting(key = "death-drops")
     private Set<ItemStack> deathDrops = new HashSet<>();
+
+    @GameConfigSetting(key = "winscore")
     private int winScore = -1;
+
+    @GameConfigSetting(key = "duration")
     private int duration = -1;
+
+    @GameConfigSetting(key = "pointBlock")
     private Material pointBlock = Material.AIR;
+
+    @GameConfigSetting(key = "pointitemchest")
+    private LocationInfo pointItemChestLocation = null;
+
     private Set<LocationInfo> pointBlockSet = new HashSet<LocationInfo>();
 
     public SimpleTeamPvPGame(SimpleTeamPvP plugin, String name) {
@@ -109,14 +145,104 @@ public abstract class SimpleTeamPvPGame implements Listener {
             game = plugin.getConfig().createSection("game." + getName());
         }
 
+        for (Field field : getClass().getDeclaredFields()) {
+            if (field.isAnnotationPresent(GameConfigSetting.class)) {
+                GameConfigSetting config = field.getAnnotation(GameConfigSetting.class);
+                Type type = field.getGenericType();
+                String typeName = field.getType().getSimpleName();
+                if (type instanceof ParameterizedType) {
+                    ParameterizedType pType = (ParameterizedType)type;
+                    typeName = pType.getRawType().getTypeName().getClass().getSimpleName() + "<" + pType.getActualTypeArguments()[0].getClass().getSimpleName() + ">";
+                }
+                plugin.getLogger().log(Level.INFO, "Loading " + typeName + " " + field.getName() + " from" + config.key());
+
+                Object value = null;
+                try {
+                    value = field.get(this);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                    continue;
+                }
+
+                switch (typeName) {
+                    case "LocationInfo":
+                        ConfigurationSection locSec = game.getConfigurationSection(config.key());
+                        if(locSec != null) {
+                            value = new LocationInfo(locSec);
+                        }
+                        break;
+                    case "Collection<ItemStack>":
+                    case "List<ItemStack>":
+                    case "Set<ItemStack>":
+                        for (String string : game.getStringList(config.key())) {
+                            try {
+                                int amount = 1;
+                                String[] partsA = string.split(" ");
+                                if (partsA.length > 1) {
+                                    amount = Integer.parseInt(partsA[1]);
+                                }
+                                String[] partsB = partsA[0].split(":");
+                                short damage = 0;
+                                if (partsB.length > 1) {
+                                    damage = Short.parseShort(partsB[1]);
+                                }
+                                plugin.getLogger().log(Level.INFO, "Adding " + string);
+                                ((Collection<ItemStack>) value).add(new ItemStack(Material.valueOf(partsB[0].toUpperCase()), amount, damage));
+                            } catch (NumberFormatException e) {
+                                plugin.getLogger().log(Level.WARNING, string + " does contain an invalid number?");
+                            } catch (IllegalArgumentException e) {
+                                plugin.getLogger().log(Level.WARNING, string + " does not contain a valid Bukkit Material key?");
+                            }
+                        }
+                        break;
+                    case "Collection<String>":
+                    case "List<String>":
+                    case "Set<String>":
+                        for (String string : game.getStringList(config.key())) {
+                            plugin.getLogger().log(Level.INFO, "Adding " + string);
+                            ((Collection<String>) value).add(string);
+                        }
+                        break;
+                    case "ItemStack":
+                        value = game.getItemStack(config.key(), (ItemStack) value);
+                        break;
+                    case "Material":
+                        try {
+                            value = Material.matchMaterial(game.getString(config.key(), value.toString()));
+                        } catch (IllegalArgumentException e) {
+                            pointBlock = Material.AIR;
+                            plugin.getLogger().log(Level.WARNING, game.getString(config.key(), "null") + " is not a valid Material name!");
+                        }
+                        break;
+                    case "String":
+                        value = ChatColor.translateAlternateColorCodes('&', game.getString(config.key(), (String) value));
+                    default:
+                         value = game.get(config.key(), value);
+                }
+                if (value != null) {
+                    try {
+                        plugin.getLogger().log(Level.INFO, field.getName() + "/" + config.key() + ":" + value);
+                        field.set(this, value);
+                    } catch (IllegalArgumentException e) {
+                        plugin.getLogger().log(Level.WARNING, "Can't set " + typeName + " " + field.getName() + " to " + value.getClass().getSimpleName() + " loaded from " + config.key());
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    plugin.getLogger().log(Level.WARNING, config.key() + "'s value is null?");
+                }
+            }
+        }
+
+        /*
+
         pointItem = game.getItemStack("pointitem");
         if (pointItem != null) {
             plugin.getLogger().log(Level.INFO, "Point item is " + pointItem);
-        }
-        ConfigurationSection locSec = game.getConfigurationSection("pointitemchest");
-        if(locSec != null) {
-            LocationInfo locInfo = new LocationInfo(locSec);
-            Location loc = locInfo.getLocation();
+        }*/
+
+        if(pointItemChestLocation != null) {
+            Location loc = pointItemChestLocation.getLocation();
             if (loc != null) {
                 Block block = loc.getBlock();
                 if (block.getState() instanceof Chest) {
@@ -134,11 +260,11 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     }
                 }
             } else {
-                plugin.getLogger().log(Level.WARNING, "Could not get location for LocationInfo " + locInfo + ". Maybe the world doesn't exist anymore?");
+                plugin.getLogger().log(Level.WARNING, "Could not get location for LocationInfo " + pointItemChestLocation + ". Maybe the world doesn't exist anymore?");
             }
         }
 
-        duration = game.getInt("duration", 0);
+        /*duration = game.getInt("duration", 0);
         plugin.getLogger().log(Level.INFO, "Duration: " + duration);
         winScore = game.getInt("winscore", -1);
         plugin.getLogger().log(Level.INFO, "Winscore: " + winScore);
@@ -154,6 +280,8 @@ public abstract class SimpleTeamPvPGame implements Listener {
         plugin.getLogger().log(Level.INFO, "Stop interact: " + filterDrops);
         filterDrops = game.getBoolean("custom-death-drops", false);
         plugin.getLogger().log(Level.INFO, "Custom death drops: " + filterDrops);
+        respawnResistance = game.getInt("respawn-reistance", 5);
+        plugin.getLogger().log(Level.INFO, "respawnResistance: " + respawnResistance);
         objectiveDisplay = ChatColor.translateAlternateColorCodes('&', game.getString("objective-display", "Points (%winscore%)"));
         plugin.getLogger().log(Level.INFO, "Objective display: " + objectiveDisplay);
 
@@ -162,8 +290,8 @@ public abstract class SimpleTeamPvPGame implements Listener {
             plugin.getLogger().log(Level.INFO, "Point block: " + pointBlock);
         } catch (IllegalArgumentException e) {
             pointBlock = Material.AIR;
-            plugin.getLogger().log(Level.WARNING, game.getString("pointblock", "null") + " is not a valid Material name for the point block");
-        }
+            plugin.getLogger().log(Level.WARNING, game.getString("pointblock", "null") + " is not a valid Material key for the point block");
+        }*/
         if(pointItem == null) {
             plugin.getLogger().log(Level.WARNING, "No point item configured!");
             pointItem = new ItemStack(pointBlock != Material.AIR ? pointBlock : Material.SLIME_BALL, 1);
@@ -171,7 +299,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             meta.setDisplayName("Point Item");
             pointItem.setItemMeta(meta);
         }
-
+        /*
         plugin.getLogger().log(Level.INFO, "Loading Drops:");
         for (String drop : game.getStringList("drops")) {
             drops.add(drop.toUpperCase());
@@ -196,10 +324,10 @@ public abstract class SimpleTeamPvPGame implements Listener {
             } catch (NumberFormatException e) {
                 plugin.getLogger().log(Level.WARNING, deathDrop + " does contain an invalid number?");
             } catch (IllegalArgumentException e) {
-                plugin.getLogger().log(Level.WARNING, deathDrop + " does not contain a valid Bukkit Material name?");
+                plugin.getLogger().log(Level.WARNING, deathDrop + " does not contain a valid Bukkit Material key?");
             }
         }
-
+        */
         state = GameState.INITIATED;
         pointObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().getObjective("teamPoints");
         if(pointObjective != null) {
@@ -274,7 +402,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
         if(plugin.getServer().getPluginManager().getPlugin("ServerTags") != null) {
             ServerTags serverTags = (ServerTags) plugin.getServer().getPluginManager().getPlugin("ServerTags");
-            // Team name -> Tag
+            // Team key -> Tag
             Map<String, String> teamTags = new HashMap<String, String>();
 
             for(TeamInfo team : plugin.getTeamMap().values()) {
@@ -796,18 +924,19 @@ public abstract class SimpleTeamPvPGame implements Listener {
             if(isUsingKits()) {
                 final Player player = event.getPlayer();
                 // We need to wait a tick after respawning to show a chest gui
-                plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
-                    public void run() {
-                        if (plugin.getKitMap().size() > 1) {
-                            plugin.getKitGui().show(player);
-                        } else {
-                            plugin.applyKit(plugin.getKitMap().values().iterator().next(), player);
-                        }
+                plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                    if (plugin.getKitMap().size() > 1) {
+                        plugin.getKitGui().show(player);
+                    } else {
+                        plugin.applyKit(plugin.getKitMap().values().iterator().next(), player);
                     }
                 }, 1L);
             }
             if(showScoreExp) {
                 event.getPlayer().setLevel(team.getScore());
+            }
+            if (respawnResistance > 0) {
+                event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, respawnResistance * 20, 5, true));
             }
         }
     }
@@ -950,6 +1079,10 @@ public abstract class SimpleTeamPvPGame implements Listener {
         this.winScore = score;
     }
 
+    public int getRespawnResistance() {
+        return respawnResistance;
+    }
+
     public void setObjectiveDisplay(String format) {
         this.objectiveDisplay = format;
         setTimerDisplay(duration);
@@ -1011,6 +1144,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
     }
 
     public String toString() {
-        return "Game{name=" + name + ",state=" + state + ",winScore=" + winScore + ",duration=" + duration + ",useKits=" + useKits + ",showScore=" + showScore + ",showScoreExp=" + showScoreExp + ",pointBlock=" + pointBlock + ",pointItem=" + pointItem + "}";
+        return "Game{key=" + name + ",state=" + state + ",winScore=" + winScore + ",duration=" + duration + ",useKits=" + useKits + ",showScore=" + showScore + ",showScoreExp=" + showScoreExp + ",pointBlock=" + pointBlock + ",pointItem=" + pointItem + "}";
     }
 }

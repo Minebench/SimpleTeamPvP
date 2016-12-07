@@ -144,7 +144,9 @@ public class KitGui implements Listener {
                 event.getWhoClicked().sendMessage(ChatColor.RED  + "Could not find a kit for item " + item.getType() + "!");
             } else {
                 plugin.applyKit(kit, (Player) event.getWhoClicked());
-                event.getWhoClicked().addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 5, true));
+                if (plugin.getGame().getRespawnResistance() > 0) {
+                    event.getWhoClicked().addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, plugin.getGame().getRespawnResistance() * 20, 5, true));
+                }
             }
         }
     }
