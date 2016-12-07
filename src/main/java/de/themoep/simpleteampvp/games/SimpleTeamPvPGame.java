@@ -145,7 +145,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             game = plugin.getConfig().createSection("game." + getName());
         }
 
-        for (Field field : getClass().getDeclaredFields()) {
+        for (Field field : this.getClass().getDeclaredFields()) {
             if (field.isAnnotationPresent(GameConfigSetting.class)) {
                 GameConfigSetting config = field.getAnnotation(GameConfigSetting.class);
                 Type type = field.getGenericType();
