@@ -379,13 +379,8 @@ public class SimpleTeamPvP extends JavaPlugin {
                 game.setPointItem(item.clone());
             }
             targetGame.setPointItem(item.clone());
-            /*try {
-                getConfig().set("game." + gameName.toLowerCase() + ".pointitem", item.clone());
-                saveConfig();
-            } catch (NullPointerException e) {
-                getConfig().set("game." + gameName.toLowerCase() + ".pointitem", null);
-                saveConfig();
-            }*/
+            getConfig().set("game." + gameName.toLowerCase() + ".pointitem", item.clone());
+            saveConfig();
             return true;
         }
         return false;
