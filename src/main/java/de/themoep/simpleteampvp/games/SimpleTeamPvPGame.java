@@ -707,7 +707,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(event.getPlayer().hasPermission("simpleteampvp.bypass"))
             return;
 
-        if(filterDrops && !getDrops().contains(event.getItemDrop().getItemStack().getType())) {
+        if(filterDrops && !isDrop(event.getItemDrop().getItemStack())) {
             event.setCancelled(true);
         }
     }
@@ -741,7 +741,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             if (event.getKeepInventory()) {
                 for (int i = 0; i < player.getInventory().getSize(); i++) {
                     ItemStack item = player.getInventory().getItem(i);
-                    if (getDrops().contains(item.getType())) {
+                    if (isDrop(item)) {
                         player.getInventory().setItem(i, null);
                         player.getLocation().getWorld().dropItem(player.getLocation(), item);
                     }
@@ -750,7 +750,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 Iterator<ItemStack> dropIterator = event.getDrops().iterator();
                 while (dropIterator.hasNext()) {
                     ItemStack drop = dropIterator.next();
-                    if (!getDrops().contains(drop.getType())) {
+                    if (!isDrop(drop)) {
                         dropIterator.remove();
                     }
                 }
