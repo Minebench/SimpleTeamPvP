@@ -5,20 +5,20 @@ import de.themoep.simpleteampvp.TeamInfo;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.CropState;
 import org.bukkit.Material;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.CocoaPlant;
 import org.bukkit.material.Crops;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Team;
@@ -155,16 +155,31 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
 
         if(getDrops().contains(event.getBlock().getType().toString())) {
             event.setCancelled(true);
+            event.getBlock().getDrops().stream().filter(this::isDrop).forEach(drop -> {
+                event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation(), drop);
+            });
+            BlockState blockState = event.getBlock().getState();
             if (event.getBlock().getState().getData() instanceof Crops) {
-                Crops crops = (Crops) event.getBlock().getState().getData();
+                Crops crops = (Crops) blockState.getData();
                 if (crops.getState() != CropState.SEEDED) {
                     crops.setState(CropState.SEEDED);
-                    event.getBlock().getState().setData(crops);
+                    blockState.setData(crops);
+                    blockState.update(true);
+                }
+            } else if (event.getBlock().getState().getData() instanceof CocoaPlant) {
+                CocoaPlant cocoaPlant = (CocoaPlant) blockState.getData();
+                ItemStack cocoa = new ItemStack(Material.INK_SACK, 1, (short) 3);
+                if (cocoaPlant.getSize() == CocoaPlant.CocoaPlantSize.LARGE && isDrop(cocoa)) {
+                    for (int i = 0; i < 3; i++) {
+                        event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation(), cocoa);
+                    }
+                }
+                if (cocoaPlant.getSize() != CocoaPlant.CocoaPlantSize.SMALL) {
+                    cocoaPlant.setSize(CocoaPlant.CocoaPlantSize.SMALL);
+                    blockState.setData(cocoaPlant);
+                    blockState.update(true);
                 }
             }
-            event.getBlock().getDrops().stream().filter(this::isDrop).forEach(drop -> {
-                event.getBlock().getWorld().dropItem(event.getBlock().getLocation(), drop);
-            });
         }
     }
 
