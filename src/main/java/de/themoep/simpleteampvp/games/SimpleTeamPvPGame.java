@@ -16,8 +16,11 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Animals;
+import org.bukkit.entity.Creature;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
+import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -25,6 +28,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -683,6 +687,26 @@ public abstract class SimpleTeamPvPGame implements Listener {
             return;
 
         if (stopBuild) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onDamageEntity(EntityDamageByEntityEvent event) {
+        if(getState() != GameState.RUNNING)
+            return;
+
+        if (!(event.getDamager() instanceof Player)) {
+            return;
+        }
+
+        if (!(event.getEntity() instanceof Creature || event.getEntity() instanceof Player)) {
+            return;
+        }
+
+        Player player = (Player) event.getDamager();
+
+        if (stopInteract && !player.hasPermission("simpleteampvp.bypass")) {
             event.setCancelled(true);
         }
     }

@@ -169,14 +169,6 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
     }
 
     @EventHandler(priority = EventPriority.LOW)
-    public void onInteract(PlayerInteractEntityEvent event) {
-        if(getState() != GameState.RUNNING)
-            return;
-
-        event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
-    }
-
-    @EventHandler(priority = EventPriority.LOW)
     public void onFoodChange(FoodLevelChangeEvent event) {
         if(getState() != GameState.RUNNING)
             return;
