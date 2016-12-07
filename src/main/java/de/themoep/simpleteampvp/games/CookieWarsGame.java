@@ -157,8 +157,8 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
             event.setCancelled(true);
             if (event.getBlock().getState().getData() instanceof Crops) {
                 Crops crops = (Crops) event.getBlock().getState().getData();
-                if (crops.getState() != CropState.GERMINATED) {
-                    crops.setState(CropState.GERMINATED);
+                if (crops.getState() != CropState.SEEDED) {
+                    crops.setState(CropState.SEEDED);
                     event.getBlock().getState().setData(crops);
                 }
             }
