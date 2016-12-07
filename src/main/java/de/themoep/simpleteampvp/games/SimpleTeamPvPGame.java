@@ -150,7 +150,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         plugin.getLogger().log(Level.INFO, "Stop interact: " + filterDrops);
         filterDrops = game.getBoolean("custom-death-drops", false);
         plugin.getLogger().log(Level.INFO, "Custom death drops: " + filterDrops);
-        objectiveDisplay = ChatColor.translateAlternateColorCodes('&', game.getString("objective-display", ""));
+        objectiveDisplay = ChatColor.translateAlternateColorCodes('&', game.getString("objective-display", "Points (%winscore%)"));
         plugin.getLogger().log(Level.INFO, "Objective display: " + objectiveDisplay);
 
         try {
@@ -206,7 +206,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             }
         }
         pointObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().registerNewObjective("teamPoints", "dummy");
-        setObjectiveDisplay("Points (%winscore%)");
+        setObjectiveDisplay(objectiveDisplay);
     }
 
     /**
