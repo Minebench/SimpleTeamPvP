@@ -46,6 +46,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -145,7 +146,10 @@ public abstract class SimpleTeamPvPGame implements Listener {
             game = plugin.getConfig().createSection("game." + getName());
         }
 
-        for (Field field : this.getClass().getDeclaredFields()) {
+        List<Field> fields = new ArrayList<>();
+        Collections.addAll(fields, getClass().getDeclaredFields());
+        Collections.addAll(fields, SimpleTeamPvPGame.class.getDeclaredFields());
+        for (Field field : fields) {
             if (field.isAnnotationPresent(GameConfigSetting.class)) {
                 GameConfigSetting config = field.getAnnotation(GameConfigSetting.class);
                 Type type = field.getGenericType();
