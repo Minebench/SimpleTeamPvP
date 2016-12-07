@@ -146,6 +146,9 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
 
     @EventHandler
     public void onIngredientBlockBreak(BlockBreakEvent event) {
+        if(getState() != GameState.RUNNING)
+            return;
+
         TeamInfo team = plugin.getTeam(event.getPlayer());
         if(team == null)
             return;
