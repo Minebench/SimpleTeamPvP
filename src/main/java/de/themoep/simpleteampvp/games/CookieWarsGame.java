@@ -3,6 +3,7 @@ package de.themoep.simpleteampvp.games;
 import de.themoep.simpleteampvp.SimpleTeamPvP;
 import de.themoep.simpleteampvp.TeamInfo;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.CropState;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,6 +19,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.Crops;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Team;
 
@@ -150,8 +152,11 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
 
         if(getDrops().contains(event.getBlock().getType().toString())) {
             event.setCancelled(true);
-            if (event.getBlock().getData() != 0) {
-                event.getBlock().setData((byte) 0);
+            if (event.getBlock().getState() instanceof Crops) {
+                Crops crops = (Crops) event.getBlock().getState();
+                if (crops.getState() != CropState.GERMINATED) {
+                    crops.setState(CropState.GERMINATED);
+                }
             }
             event.getBlock().getDrops().stream().filter(this::isDrop).forEach(drop -> {
                 event.getBlock().getWorld().dropItem(event.getBlock().getLocation(), drop);
