@@ -884,9 +884,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
     }
 
     public boolean isDrop(ItemStack item) {
-        return item.getDurability() == 0
-                ? getDrops().contains(item.getType().toString())
-                : getDrops().contains(item.getType().toString() + ":" + item.getDurability());
+        return getDrops().contains(item.getType().toString()) || getDrops().contains(item.getType().toString() + ":" + item.getDurability());
     }
 
     public Set<ItemStack> getDeathDrops() {
