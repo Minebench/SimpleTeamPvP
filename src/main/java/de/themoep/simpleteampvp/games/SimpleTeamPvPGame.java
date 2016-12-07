@@ -105,6 +105,10 @@ public abstract class SimpleTeamPvPGame implements Listener {
             game = plugin.getConfig().createSection("game." + getName());
         }
 
+        pointItem = game.getItemStack("pointitem");
+        if (pointItem != null) {
+            plugin.getLogger().log(Level.INFO, "Point item is " + pointItem);
+        }
         ConfigurationSection locSec = game.getConfigurationSection("pointitemchest");
         if(locSec != null) {
             LocationInfo locInfo = new LocationInfo(locSec);
@@ -130,7 +134,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
             }
         }
 
-        //pointItem = plugin.getConfig().getItemStack("game." + this.name + ".pointitem", null);
         duration = game.getInt("duration", 0);
         plugin.getLogger().log(Level.INFO, "Duration: " + duration);
         winScore = game.getInt("winscore", -1);
