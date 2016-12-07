@@ -148,31 +148,17 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
         if(team == null)
             return;
 
-        if(getDrops().contains(event.getBlock().getType())) {
+        if(getDrops().contains(event.getBlock().getType().toString())) {
             event.setCancelled(true);
             if (event.getBlock().getState().getData().getData() != 0) {
                 event.getBlock().getState().getData().setData((byte) 0);
             }
             for (ItemStack drop : event.getBlock().getDrops()) {
-                event.getBlock().getWorld().dropItem(event.getBlock().getLocation(), drop);
+                if (isDrop(drop)) {
+                    event.getBlock().getWorld().dropItem(event.getBlock().getLocation(), drop);
+                }
             }
         }
-    }
-
-    @EventHandler(priority = EventPriority.LOW)
-    public void onBlockPlace(BlockPlaceEvent event) {
-        if(getState() != GameState.RUNNING)
-            return;
-
-        event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
-    }
-
-    @EventHandler(priority = EventPriority.LOW)
-    public void onBlockBreak(BlockBreakEvent event) {
-        if(getState() != GameState.RUNNING)
-            return;
-
-        event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
     }
 
     @EventHandler(priority = EventPriority.LOW)

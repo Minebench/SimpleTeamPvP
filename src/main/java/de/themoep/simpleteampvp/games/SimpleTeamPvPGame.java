@@ -24,8 +24,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
@@ -46,6 +48,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 
 /**
@@ -80,9 +83,11 @@ public abstract class SimpleTeamPvPGame implements Listener {
     private boolean showScore = false;
     private boolean showScoreExp = false;
     private boolean filterDrops;
+    private boolean stopBuild;
+    private boolean stopInteract;
     private String objectiveDisplay = "";
     private ItemStack pointItem = null;
-    private Set<Material> drops = new HashSet<>();
+    private Set<String> drops = new HashSet<>();
     private Set<ItemStack> deathDrops = new HashSet<>();
     private int winScore = -1;
     private int duration = -1;
@@ -136,6 +141,10 @@ public abstract class SimpleTeamPvPGame implements Listener {
         plugin.getLogger().log(Level.INFO, "Show score: " + showScore);
         showScoreExp = game.getBoolean("score-in-exp-bar", false);
         plugin.getLogger().log(Level.INFO, "Show score in exp bar: " + showScoreExp);
+        stopBuild = game.getBoolean("stop-build", false);
+        plugin.getLogger().log(Level.INFO, "Stop build: " + filterDrops);
+        stopInteract = game.getBoolean("stop-interact", false);
+        plugin.getLogger().log(Level.INFO, "Stop interact: " + filterDrops);
         filterDrops = game.getBoolean("custom-death-drops", false);
         plugin.getLogger().log(Level.INFO, "Custom death drops: " + filterDrops);
         objectiveDisplay = ChatColor.translateAlternateColorCodes('&', game.getString("objective-display", ""));
@@ -156,14 +165,10 @@ public abstract class SimpleTeamPvPGame implements Listener {
             pointItem.setItemMeta(meta);
         }
 
-        for (String ingredient : game.getStringList("drops")) {
-            plugin.getLogger().log(Level.INFO, "Loading Drops...");
-            try {
-                drops.add(Material.valueOf(ingredient.toUpperCase()));
-                plugin.getLogger().log(Level.INFO, "Added " + ingredient);
-            } catch (IllegalArgumentException e) {
-                plugin.getLogger().log(Level.WARNING, ingredient + " is not a valid Bukkit Material name?");
-            }
+        drops.addAll(game.getStringList("drops"));
+        plugin.getLogger().log(Level.INFO, "Drops:");
+        for (String drop : drops) {
+            plugin.getLogger().log(Level.INFO, " " + drop);
         }
 
         for (String deathDrop : game.getStringList("death-drops")) {
@@ -641,6 +646,56 @@ public abstract class SimpleTeamPvPGame implements Listener {
         return useKits;
     }
 
+    @EventHandler(priority = EventPriority.LOW)
+    public void onBlockBreak(BlockBreakEvent event) {
+        if(getState() != GameState.RUNNING)
+            return;
+
+        if(event.getPlayer().hasPermission("simpleteampvp.bypass"))
+            return;
+
+        if (stopBuild) {
+            event.setCancelled(true);
+        }
+
+        if(!event.isCancelled() && filterDrops) {
+            List<ItemStack> drops = event.getBlock().getDrops().stream().filter(this::isDrop).collect(Collectors.toList());
+            if (drops.size() != event.getBlock().getDrops().size()) {
+                event.setCancelled(true);
+                event.getBlock().setType(Material.AIR);
+                for (ItemStack drop : drops) {
+                    event.getBlock().getWorld().dropItem(event.getBlock().getLocation(), drop);
+                }
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onBlockPlace(BlockPlaceEvent event) {
+        if(getState() != GameState.RUNNING)
+            return;
+
+        if(event.getPlayer().hasPermission("simpleteampvp.bypass"))
+            return;
+
+        if (stopBuild) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onInteract(PlayerInteractEntityEvent event) {
+        if(getState() != GameState.RUNNING)
+            return;
+
+        if(event.getPlayer().hasPermission("simpleteampvp.bypass"))
+            return;
+
+        if (stopInteract) {
+            event.setCancelled(true);
+        }
+    }
+
     @EventHandler
     public void onItemDrop(PlayerDropItemEvent event) {
         if(getState() != GameState.RUNNING)
@@ -796,8 +851,14 @@ public abstract class SimpleTeamPvPGame implements Listener {
         this.pointItem = pointItem;
     }
 
-    public Set<Material> getDrops() {
+    public Set<String> getDrops() {
         return drops;
+    }
+
+    public boolean isDrop(ItemStack item) {
+        return item.getData() == null || item.getData().getData() == 0
+                ? getDrops().contains(item.getType().toString())
+                : getDrops().contains(item.getType().toString() + ":" + item.getData().getData());
     }
 
     public Set<ItemStack> getDeathDrops() {
