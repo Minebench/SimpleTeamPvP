@@ -152,10 +152,11 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
 
         if(getDrops().contains(event.getBlock().getType().toString())) {
             event.setCancelled(true);
-            if (event.getBlock().getState() instanceof Crops) {
+            if (event.getBlock().getState().getData() instanceof Crops) {
                 Crops crops = (Crops) event.getBlock().getState();
                 if (crops.getState() != CropState.GERMINATED) {
                     crops.setState(CropState.GERMINATED);
+                    event.getBlock().getState().setData(crops);
                 }
             }
             event.getBlock().getDrops().stream().filter(this::isDrop).forEach(drop -> {
