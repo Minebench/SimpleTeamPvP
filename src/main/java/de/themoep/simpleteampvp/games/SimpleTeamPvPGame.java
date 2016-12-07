@@ -225,7 +225,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
         state = GameState.JOINING;
         for(Player player : plugin.getServer().getOnlinePlayers()) {
-            if(player.hasPermission("simpleteampvp.bypass") || player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR)
+            if(player.hasPermission(SimpleTeamPvP.BYPASS_PERM) || player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR)
                 continue;
 
             if(plugin.getTeam(player) != null)
@@ -255,7 +255,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
         List<Player> playersToJoin = new ArrayList<Player>();
         for(Player player : plugin.getServer().getOnlinePlayers()) {
-            if(player.hasPermission("simpleteampvp.bypass") || player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR)
+            if(player.hasPermission(SimpleTeamPvP.BYPASS_PERM) || player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR)
                 continue;
             if(plugin.getTeam(player) != null)
                 continue;
@@ -659,7 +659,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(getState() != GameState.RUNNING)
             return;
 
-        if(event.getPlayer().hasPermission("simpleteampvp.bypass"))
+        if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
         if (stopBuild) {
@@ -683,7 +683,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(getState() != GameState.RUNNING)
             return;
 
-        if(event.getPlayer().hasPermission("simpleteampvp.bypass"))
+        if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
         if (stopBuild) {
@@ -706,7 +706,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
         Player player = (Player) event.getDamager();
 
-        if (stopInteract && !player.hasPermission("simpleteampvp.bypass")) {
+        if (stopInteract && !player.hasPermission(SimpleTeamPvP.BYPASS_PERM)) {
             event.setCancelled(true);
         }
     }
@@ -716,7 +716,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(getState() != GameState.RUNNING)
             return;
 
-        if(event.getPlayer().hasPermission("simpleteampvp.bypass"))
+        if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
         if (stopInteract) {
@@ -729,7 +729,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(getState() != GameState.RUNNING)
             return;
 
-        if(event.getPlayer().hasPermission("simpleteampvp.bypass"))
+        if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
         if(filterDrops && !isDrop(event.getItemDrop().getItemStack())) {
@@ -744,7 +744,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
         Player player = event.getEntity();
 
-        if(player.hasPermission("simpleteampvp.bypass"))
+        if(player.hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
         TeamInfo team = plugin.getTeam(player);
@@ -788,7 +788,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(getState() != GameState.RUNNING)
             return;
 
-        if(event.getPlayer().hasPermission("simpleteampvp.bypass"))
+        if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
         TeamInfo team = plugin.getTeam(event.getPlayer());
@@ -817,7 +817,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(state != GameState.RUNNING)
             return;
 
-        if(event.getPlayer().hasPermission("simpleteampvp.bypass"))
+        if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
         if(event.getBlock().getType() == getPointBlock()) {

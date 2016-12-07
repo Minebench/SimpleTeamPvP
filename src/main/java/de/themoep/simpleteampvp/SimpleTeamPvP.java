@@ -50,6 +50,7 @@ import java.util.logging.Level;
 
 public class SimpleTeamPvP extends JavaPlugin {
 
+    public static final String BYPASS_PERM = "simpleteampvp.bypass";
     private Map<String, TeamInfo> teamMap;
     private Map<String, KitInfo> kitMap;
     private SimpleTeamPvPGame game = null;

@@ -68,7 +68,7 @@ public class XmasGame extends SimpleTeamPvPGame {
         if(getState() != GameState.RUNNING)
             return;
 
-        if(event.getWhoClicked().hasPermission("simpleteampvp.bypass"))
+        if(event.getWhoClicked().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
         if(event.getSlotType() == InventoryType.SlotType.ARMOR) {
@@ -81,7 +81,7 @@ public class XmasGame extends SimpleTeamPvPGame {
         if(getState() != GameState.RUNNING)
             return;
 
-        if(event.getWhoClicked().hasPermission("simpleteampvp.bypass"))
+        if(event.getWhoClicked().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
         for(int i : event.getRawSlots()) {
@@ -97,7 +97,7 @@ public class XmasGame extends SimpleTeamPvPGame {
         if(getState() != GameState.RUNNING)
             return;
 
-        if(event.getPlayer().hasPermission("simpleteampvp.bypass"))
+        if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
         if(!event.getItemDrop().getItemStack().isSimilar(getPointItem())) {
@@ -112,7 +112,7 @@ public class XmasGame extends SimpleTeamPvPGame {
 
         Player player = event.getEntity();
 
-        if(player.hasPermission("simpleteampvp.bypass"))
+        if(player.hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
         if(plugin.getTeam(player) == null)
@@ -148,7 +148,7 @@ public class XmasGame extends SimpleTeamPvPGame {
             return;
 
         if((event.getAction() == Action.PHYSICAL) && event.getClickedBlock().getType() == Material.SOIL) {
-            event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
+            event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM));
         }
 
         if(event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK)
@@ -159,7 +159,7 @@ public class XmasGame extends SimpleTeamPvPGame {
                     || event.getClickedBlock().getType() == Material.BED_BLOCK
                     || event.getClickedBlock().getType() == Material.TRAP_DOOR
                     ) {
-                event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
+                event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM));
             }
         }
 
@@ -168,7 +168,7 @@ public class XmasGame extends SimpleTeamPvPGame {
 
         Player player = event.getPlayer();
 
-        if(player.hasPermission("simpleteampvp.bypass"))
+        if(player.hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
         TeamInfo team = plugin.getTeam(player);
@@ -229,7 +229,7 @@ public class XmasGame extends SimpleTeamPvPGame {
         if(getState() != GameState.RUNNING)
             return;
 
-        event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
+        event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM));
     }
 
     @EventHandler(priority = EventPriority.LOW)
@@ -237,7 +237,7 @@ public class XmasGame extends SimpleTeamPvPGame {
         if(getState() != GameState.RUNNING)
             return;
 
-        event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
+        event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM));
     }
 
     @EventHandler(priority = EventPriority.LOW)
@@ -245,7 +245,7 @@ public class XmasGame extends SimpleTeamPvPGame {
         if(getState() != GameState.RUNNING)
             return;
 
-        event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
+        event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM));
     }
 
     @EventHandler(priority = EventPriority.LOW)

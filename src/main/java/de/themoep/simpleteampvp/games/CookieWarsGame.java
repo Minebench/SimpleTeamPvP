@@ -60,7 +60,7 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
         if(getState() != GameState.RUNNING)
             return;
 
-        if(event.getWhoClicked().hasPermission("simpleteampvp.bypass"))
+        if(event.getWhoClicked().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
         if(event.getSlotType() == InventoryType.SlotType.ARMOR) {
@@ -73,7 +73,7 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
         if(getState() != GameState.RUNNING)
             return;
 
-        if(event.getWhoClicked().hasPermission("simpleteampvp.bypass"))
+        if(event.getWhoClicked().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
         for(int i : event.getRawSlots()) {
@@ -90,7 +90,7 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
             return;
 
         if(event.getAction() == Action.PHYSICAL && event.getClickedBlock().getType() == Material.SOIL) {
-            event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
+            event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM));
         }
 
         if(event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK)
@@ -100,7 +100,7 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
             if(event.getClickedBlock().getState() instanceof InventoryHolder
                     || event.getClickedBlock().getType() == Material.BED_BLOCK
                     ) {
-                event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission("simpleteampvp.bypass"));
+                event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM));
             }
         }
 
@@ -109,7 +109,7 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
 
         Player player = event.getPlayer();
 
-        if(player.hasPermission("simpleteampvp.bypass"))
+        if(player.hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
         TeamInfo team = plugin.getTeam(player);

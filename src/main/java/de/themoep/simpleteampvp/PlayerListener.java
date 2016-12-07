@@ -47,7 +47,7 @@ public class PlayerListener implements Listener {
         if(event.getResult() != PlayerLoginEvent.Result.ALLOWED)
             return;
 
-        if(event.getPlayer().hasPermission("simpleteampvp.bypass"))
+        if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
         if(plugin.getGame() == null || plugin.getGame().getState() != GameState.RUNNING || plugin.getTeam(event.getPlayer()) == null) {
@@ -90,7 +90,7 @@ public class PlayerListener implements Listener {
         if(event.getEntity() instanceof Player) {
             if(plugin.getTeam((Player) event.getEntity()) == null && plugin.getGame() != null && plugin.getGame().getState() != GameState.DESTROYED) {
                 if(event.getDamager() instanceof Player) {
-                    event.setCancelled(!event.getDamager().hasPermission("simpleteampvp.bypass"));
+                    event.setCancelled(!event.getDamager().hasPermission(SimpleTeamPvP.BYPASS_PERM));
                 } else {
                     event.setCancelled(true);
                 }

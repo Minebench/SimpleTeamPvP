@@ -106,7 +106,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             return;
         }
 
-        if (!event.getPlayer().hasPermission("simpleteampvp.bypass")) {
+        if (!event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM)) {
             artificialWool.add(event.getBlock().getLocation().hashCode());
         }
 
@@ -136,7 +136,7 @@ public class CtwGame extends SimpleTeamPvPGame {
         }
 
         if (team.equals(woolTeam)
-                && !event.getPlayer().hasPermission("simpleteampvp.bypass")
+                && !event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM)
                 && !artificialWool.contains(event.getBlock().getLocation().hashCode())
                 ) {
             event.getPlayer().sendMessage(ChatColor.RED + "Du kannst die Wolle deines eigenen Teams nicht abbauen!");
