@@ -1,6 +1,6 @@
 name: ${project.name}
 main: de.themoep.simpleteampvp.SimpleTeamPvP
-version: ${minecraft.plugin.version}
+version: '${minecraft.plugin.version}'
 description: ${project.description}
 authors: [Phoenix616]
 soft-depend: [ServerTags]
