@@ -150,8 +150,8 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
 
         if(getDrops().contains(event.getBlock().getType().toString())) {
             event.setCancelled(true);
-            if (event.getBlock().getState().getData().getData() != 0) {
-                event.getBlock().getState().getData().setData((byte) 0);
+            if (event.getBlock().getData() != 0) {
+                event.getBlock().setData((byte) 0);
             }
             event.getBlock().getDrops().stream().filter(this::isDrop).forEach(drop -> {
                 event.getBlock().getWorld().dropItem(event.getBlock().getLocation(), drop);
