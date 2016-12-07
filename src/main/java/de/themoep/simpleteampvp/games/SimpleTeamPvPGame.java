@@ -165,10 +165,10 @@ public abstract class SimpleTeamPvPGame implements Listener {
             pointItem.setItemMeta(meta);
         }
 
-        drops.addAll(game.getStringList("drops"));
-        plugin.getLogger().log(Level.INFO, "Drops:");
-        for (String drop : drops) {
-            plugin.getLogger().log(Level.INFO, " " + drop);
+        plugin.getLogger().log(Level.INFO, "Loading Drops:");
+        for (String drop : game.getStringList("drops")) {
+            drops.add(drop.toUpperCase());
+            plugin.getLogger().log(Level.INFO, "Added " + drop);
         }
 
         for (String deathDrop : game.getStringList("death-drops")) {
