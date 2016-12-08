@@ -33,6 +33,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -807,26 +808,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
         return useKits;
     }
 
-    @EventHandler
-    public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getWhoClicked().hasPermission(SimpleTeamPvP.BYPASS_PERM))
-            return;
-
-        if (isUsingKits()) {
-            if (event.getSlotType() == InventoryType.SlotType.ARMOR) {
-                event.setCancelled(true);
-            } else {
-                for (KitInfo kit : plugin.getKitMap().values()) {
-                    if (kit.isArmor(event.getWhoClicked().getInventory().getHelmet()) && kit.isItem(event.getCurrentItem())) {
-                        event.setCancelled(true);
-                        break;
-                    }
-                }
-            }
-        }
-
-    }
-
     @EventHandler(priority = EventPriority.LOW)
     public void onBlockBreak(BlockBreakEvent event) {
         if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
@@ -934,13 +915,20 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(filterDrops && !isWhitelisted(event.getItemDrop().getItemStack())) {
             event.setCancelled(true);
         }
+    }
 
-        if (isUsingKits()) {
-            for (KitInfo kit : plugin.getKitMap().values()) {
-                if (kit.isArmor(event.getPlayer().getInventory().getHelmet()) && kit.isItem(event.getItemDrop().getItemStack())) {
-                    event.setCancelled(true);
-                    break;
-                }
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (event.getWhoClicked().hasPermission(SimpleTeamPvP.BYPASS_PERM))
+            return;
+
+        if (isUsingKits() && event.getSlotType() == InventoryType.SlotType.ARMOR) {
+            event.setCancelled(true);
+        }
+
+        if (event.getAction() == InventoryAction.COLLECT_TO_CURSOR || event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+            if (filterDrops && !isWhitelisted(event.getCurrentItem())) {
+                event.setCancelled(true);
             }
         }
     }
