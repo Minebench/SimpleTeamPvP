@@ -26,6 +26,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class Utils {
 
+    private static Random r = new Random();
+
     public static String formatTime(long time, TimeUnit unit) {
         String format = "HH:mm:ss";
         if(unit.toHours(time) < 1) {
@@ -51,7 +53,6 @@ public class Utils {
     public static Color convertColor(net.md_5.bungee.api.ChatColor color) {
         switch(color) {
             case MAGIC:
-                Random r = new Random();
                 return Color.fromRGB(r.nextInt(256), r.nextInt(256), r.nextInt(256));
             case BLACK:
                 return Color.fromRGB(0, 0, 0);
