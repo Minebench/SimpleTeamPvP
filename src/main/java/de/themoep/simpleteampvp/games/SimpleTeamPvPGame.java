@@ -232,6 +232,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                         break;
                     case "String":
                         value = ChatColor.translateAlternateColorCodes('&', game.getString(config.key(), (String) value));
+                        break;
                     default:
                          value = game.get(config.key(), value);
                 }
