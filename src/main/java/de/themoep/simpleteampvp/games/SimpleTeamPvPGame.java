@@ -689,7 +689,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if (highestKillStreakScore > 0) {
             plugin.getServer().broadcastMessage(ChatColor.GREEN + "Höchste Killstreak ("
                     + ChatColor.YELLOW + highestKillStreakScore
-                    + ChatColor.GREEN + "): " + StringUtils.join(highestKillStreakPlayers, ", "));
+                    + ChatColor.GREEN + "): " + ChatColor.WHITE + StringUtils.join(highestKillStreakPlayers, ", "));
         }
 
         fwTask = plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable() {
