@@ -220,14 +220,16 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     default:
                          value = game.get(config.key(), value);
                 }
-                if (value != null && (value instanceof Boolean && !value.equals(defValue))) {
-                    try {
-                        plugin.getLogger().log(Level.INFO, config.key().replace('-', ' ') + ": " + value);
-                        field.set(this, value);
-                    } catch (IllegalArgumentException e) {
-                        plugin.getLogger().log(Level.WARNING, "Can't set " + typeName + " " + field.getName() + " to " + value.getClass().getSimpleName() + " loaded from " + config.key());
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
+                if (value != null) {
+                    if (!(value instanceof Boolean) || !value.equals(defValue)) {
+                        try {
+                            plugin.getLogger().log(Level.INFO, config.key().replace('-', ' ') + ": " + value);
+                            field.set(this, value);
+                        } catch (IllegalArgumentException e) {
+                            plugin.getLogger().log(Level.WARNING, "Can't set " + typeName + " " + field.getName() + " to " + value.getClass().getSimpleName() + " loaded from " + config.key());
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
                     }
                 } else {
                     plugin.getLogger().log(Level.WARNING, config.key() + "'s value is null?");
