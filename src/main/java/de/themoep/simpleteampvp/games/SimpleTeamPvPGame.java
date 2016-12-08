@@ -8,6 +8,7 @@ import de.themoep.simpleteampvp.TeamInfo;
 import de.themoep.simpleteampvp.Utils;
 import net.md_5.bungee.api.ChatColor;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.GameMode;
@@ -46,7 +47,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -146,10 +146,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             game = plugin.getConfig().createSection("game." + getName());
         }
 
-        List<Field> fields = new ArrayList<>();
-        Collections.addAll(fields, getClass().getDeclaredFields());
-        Collections.addAll(fields, SimpleTeamPvPGame.class.getDeclaredFields());
-        for (Field field : fields) {
+        for (Field field : FieldUtils.getAllFields(getClass())) {
             if (field.isAnnotationPresent(GameConfigSetting.class)) {
                 GameConfigSetting config = field.getAnnotation(GameConfigSetting.class);
                 Type type = field.getGenericType();
@@ -158,8 +155,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     ParameterizedType pType = (ParameterizedType)type;
                     typeName = pType.getRawType().getTypeName().getClass().getSimpleName() + "<" + pType.getActualTypeArguments()[0].getClass().getSimpleName() + ">";
                 }
-                plugin.getLogger().log(Level.INFO, "Loading " + typeName + " " + field.getName() + " from" + config.key());
-
                 Object value = null;
                 try {
                     value = field.get(this);
@@ -225,7 +220,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 }
                 if (value != null) {
                     try {
-                        plugin.getLogger().log(Level.INFO, field.getName() + "/" + config.key() + ":" + value);
+                        plugin.getLogger().log(Level.INFO, config.key().replace('-', ' ') + ": " + value);
                         field.set(this, value);
                     } catch (IllegalArgumentException e) {
                         plugin.getLogger().log(Level.WARNING, "Can't set " + typeName + " " + field.getName() + " to " + value.getClass().getSimpleName() + " loaded from " + config.key());
