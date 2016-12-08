@@ -555,6 +555,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 }
             }
             killStreakObjectiveName = plugin.getServer().getScoreboardManager().getMainScoreboard().registerNewObjective("killStreakName", "playerKillCount");
+            killStreakObjectiveName.setDisplayName("Kills");
             killStreakObjectiveName.setDisplaySlot(DisplaySlot.BELOW_NAME);
         }
 
