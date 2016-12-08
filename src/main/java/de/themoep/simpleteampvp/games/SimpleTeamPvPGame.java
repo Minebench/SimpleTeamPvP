@@ -929,7 +929,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             event.setCancelled(true);
         }
 
-        if (event.getAction() == InventoryAction.COLLECT_TO_CURSOR || event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+        if (event.getClickedInventory() != event.getWhoClicked().getInventory() || event.getAction() == InventoryAction.COLLECT_TO_CURSOR || event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
             if (filterDrops && !isWhitelisted(event.getCurrentItem())) {
                 event.setCancelled(true);
             }
