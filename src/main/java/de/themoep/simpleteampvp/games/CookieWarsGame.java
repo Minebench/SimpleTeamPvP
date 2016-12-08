@@ -12,11 +12,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.CocoaPlant;
 import org.bukkit.material.Crops;
@@ -76,10 +74,13 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
         if(getState() != GameState.RUNNING)
             return;
 
-        if(event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK)
+        if(getPointItem() == null)
             return;
 
-        if(getPointItem() == null)
+        if (event.getHand() != EquipmentSlot.HAND)
+            return;
+
+        if(event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK)
             return;
 
         Player player = event.getPlayer();
@@ -112,7 +113,7 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
         }
         if(amount > 0) {
             player.updateInventory();
-            player.sendMessage(ChatColor.YELLOW + Integer.toString(amount) + ChatColor.GREEN + " Cookie" + (amount == 1 ? "" : "e") + " für dein Team hinzugefügt!");
+            player.sendMessage(ChatColor.YELLOW + Integer.toString(amount) + ChatColor.GREEN + " Cookie" + (amount == 1 ? "" : "s") + " für dein Team hinzugefügt!");
             incrementScore(team, amount);
         } else {
             player.sendMessage(ChatColor.RED + "Du hast keine Cookies in deinem Inventar?");
