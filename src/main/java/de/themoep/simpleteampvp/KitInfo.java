@@ -193,4 +193,17 @@ public class KitInfo {
                 || (getLegs() != null && item.getType() == getLegs().getType())
                 || (getBoots() != null && item.getType() == getBoots().getType());
     }
+
+    public boolean isItem(ItemStack item) {
+        if (isArmor(item)) {
+            return true;
+        }
+
+        for (ItemStack kitItem : items) {
+            if (kitItem.getType() == item.getType()) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

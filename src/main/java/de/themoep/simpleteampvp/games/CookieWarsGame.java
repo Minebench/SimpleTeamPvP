@@ -56,19 +56,6 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
     }
 
     @EventHandler
-    public void onInventoryClick(InventoryClickEvent event) {
-        if(getState() != GameState.RUNNING)
-            return;
-
-        if(event.getWhoClicked().hasPermission(SimpleTeamPvP.BYPASS_PERM))
-            return;
-
-        if(event.getSlotType() == InventoryType.SlotType.ARMOR) {
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
         if(getState() != GameState.RUNNING)
             return;

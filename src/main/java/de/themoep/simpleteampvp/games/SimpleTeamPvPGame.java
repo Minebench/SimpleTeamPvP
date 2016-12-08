@@ -1,6 +1,7 @@
 package de.themoep.simpleteampvp.games;
 
 import de.themoep.servertags.bukkit.ServerInfo;
+import de.themoep.simpleteampvp.KitInfo;
 import de.themoep.simpleteampvp.LocationInfo;
 import de.themoep.simpleteampvp.SimpleTeamPvP;
 import de.themoep.simpleteampvp.TeamInfo;
@@ -32,6 +33,8 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -800,6 +803,29 @@ public abstract class SimpleTeamPvPGame implements Listener {
         return useKits;
     }
 
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (getState() != GameState.RUNNING)
+            return;
+
+        if (event.getWhoClicked().hasPermission(SimpleTeamPvP.BYPASS_PERM))
+            return;
+
+        if (isUsingKits()) {
+            if (event.getSlotType() == InventoryType.SlotType.ARMOR) {
+                event.setCancelled(true);
+            } else {
+                for (KitInfo kit : plugin.getKitMap().values()) {
+                    if (kit.isArmor(event.getWhoClicked().getInventory().getHelmet()) && kit.isItem(event.getCurrentItem())) {
+                        event.setCancelled(true);
+                        break;
+                    }
+                }
+            }
+        }
+
+    }
+
     @EventHandler(priority = EventPriority.LOW)
     public void onBlockBreak(BlockBreakEvent event) {
         if(getState() != GameState.RUNNING)
@@ -930,6 +956,15 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
         if(filterDrops && !isWhitelisted(event.getItemDrop().getItemStack())) {
             event.setCancelled(true);
+        }
+
+        if (isUsingKits()) {
+            for (KitInfo kit : plugin.getKitMap().values()) {
+                if (kit.isArmor(event.getPlayer().getInventory().getHelmet()) && kit.isItem(event.getItemDrop().getItemStack())) {
+                    event.setCancelled(true);
+                    break;
+                }
+            }
         }
     }
 
