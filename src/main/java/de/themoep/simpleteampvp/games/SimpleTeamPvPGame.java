@@ -1,7 +1,6 @@
 package de.themoep.simpleteampvp.games;
 
 import de.themoep.servertags.bukkit.ServerInfo;
-import de.themoep.simpleteampvp.KitInfo;
 import de.themoep.simpleteampvp.LocationInfo;
 import de.themoep.simpleteampvp.SimpleTeamPvP;
 import de.themoep.simpleteampvp.TeamInfo;
@@ -413,15 +412,14 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     if(tag.equals(teamTags.get(team.getName())))
                         continue;
 
-                    plugin.getLogger().log(Level.INFO, "[ST] Removed " + player.getName() + " from " + team.getName());
+                    plugin.getLogger().log(Level.INFO, "[ST] Removed " + player.getName() + " from " + team.getName() + " (Step 1)");
 
                     team.removePlayer(player);
                     playersToJoin.add(player);
-                    break;
                 }
 
                 // Team still larger than the perfect size? Remove last joined player
-                List<String> teamMates = new ArrayList<String>(team.getScoreboardTeam().getEntries());
+                List<String> teamMates = new ArrayList<>(team.getScoreboardTeam().getEntries());
                 while (team.getSize() > perfectSize + 0.5) {
                     String name = teamMates.get(teamMates.size() - 1);
                     Player player = plugin.getServer().getPlayer(name);
@@ -429,7 +427,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                         continue;
 
                     team.removePlayer(player);
-                    plugin.getLogger().log(Level.INFO, "[ST] Removed " + player.getName() + " from " + team.getName());
+                    plugin.getLogger().log(Level.INFO, "[ST] Removed " + player.getName() + " from " + team.getName() + " (Step 2)");
                     teamMates.remove(name);
                     playersToJoin.add(player);
                 }
@@ -442,7 +440,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 ServerInfo serverInfo = plugin.getServerTags().getPlayerServer(player);
                 if(serverInfo != null && teamTags.containsValue(serverInfo.getTag())) {
                     for(TeamInfo team : plugin.getTeamMap().values()) {
-                        if(team.getSize() < perfectSize && teamTags.containsKey(team.getName()) && teamTags.get(team.getName()).equals(serverInfo.getTag())) {
+                        if(team.getSize() < perfectSize - 0.5 && teamTags.containsKey(team.getName()) && teamTags.get(team.getName()).equals(serverInfo.getTag())) {
                             team.addPlayer(player);
                             plugin.getLogger().log(Level.INFO, "[ST] Added " + player.getName() + " to " + team.getName());
                             playerIterator.remove();
@@ -468,7 +466,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
                 team.removePlayer(player);
                 playersToJoin.add(player);
-                break;
             }
         }
 
@@ -476,7 +473,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         while(playerIterator.hasNext()) {
             Player player = playerIterator.next();
             for(TeamInfo team : plugin.getTeamMap().values()) {
-                if(team.getSize() < perfectSize) {
+                if(team.getSize() < perfectSize - 0.5) {
                     team.addPlayer(player);
                     plugin.getLogger().log(Level.INFO, "Added " + player.getName() + " to " + team.getName());
                     playerIterator.remove();
@@ -485,15 +482,36 @@ public abstract class SimpleTeamPvPGame implements Listener {
             }
         }
 
-        List<TeamInfo> teams = new ArrayList<TeamInfo>(plugin.getTeamMap().values());
-        Random random = new Random();
-        for(Player player : playersToJoin) {
-            TeamInfo team = teams.get(random.nextInt(teams.size()));
-            while (team.getSize() == 0) {
-                team = teams.get(random.nextInt(teams.size()));
+        if (playersToJoin.size() > 0) {
+            plugin.getLogger().log(Level.INFO, "Adding " + playersToJoin.size() + " remaining players to teams accordint to their player count:");
+
+            List<TeamInfo> teams = new ArrayList<>(plugin.getTeamMap().values());
+            teams.sort((t1, t2) -> Integer.compare(t2.getSize(), t1.getSize()));
+
+            for (TeamInfo team : teams) {
+                while (playerIterator.hasNext()) {
+                    if (team.getSize() > perfectSize)
+                        break;
+
+                    Player player = playerIterator.next();
+                    team.addPlayer(player);
+                    plugin.getLogger().log(Level.INFO, "Added remaining player " + player.getName() + " to " + team.getName());
+                    playerIterator.remove();
+                }
             }
-            team.addPlayer(player);
-            plugin.getLogger().log(Level.INFO, "Added " + player.getName() + " to " + team.getName() + " by random!");
+        }
+
+        if (playersToJoin.size() > 0) {
+            plugin.getLogger().log(Level.INFO, "Adding " + playersToJoin.size() + " remaining players to totally random teams:");
+            Random r = new Random();
+            List<TeamInfo> teams = new ArrayList<>(plugin.getTeamMap().values());
+            while (playerIterator.hasNext()) {
+                Player player = playerIterator.next();
+                TeamInfo team = teams.get(r.nextInt(teams.size()));
+                team.addPlayer(player);
+                plugin.getLogger().log(Level.INFO, "Added player " + player.getName() + " to " + team.getName() + " by random");
+                playerIterator.remove();
+            }
         }
         plugin.getLogger().log(Level.INFO, "All players joined! (" + playersToJoin.size() + ")");
 
