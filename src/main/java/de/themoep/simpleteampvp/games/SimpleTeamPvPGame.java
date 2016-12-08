@@ -593,8 +593,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     player.setBedSpawnLocation(spawnLocation, true);
                 }
             }
-            Score score = pointObjective.getScore(team.getColor() + team.getName());
-            score.setScore(0);
+            removeScore(pointObjective, team.getColor() + team.getName());
         }
         state = GameState.RUNNING;
         if(showScore) {
@@ -1017,10 +1016,23 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
             calculateHighestKillStreak(event.getPlayer());
             if (killStreakDisplayName && killStreakObjectiveName != null) {
-                killStreakObjectiveName.getScore(event.getPlayer().getName()).setScore(0);
+                removeScore(killStreakObjectiveName, event.getPlayer().getName());
             }
             if (killStreakDisplayTab && killStreakObjectiveTab != null) {
-                killStreakObjectiveTab.getScore(event.getPlayer().getName()).setScore(0);
+                removeScore(killStreakObjectiveTab, event.getPlayer().getName());
+            }
+        }
+    }
+
+    private void removeScore(Objective objective, String playerName){
+        Map<String, Integer> scores = new HashMap<>();
+        for (Objective boardObjective : objective.getScoreboard().getObjectives()) {
+            scores.put(boardObjective.getName(), boardObjective.getScore(playerName).getScore());
+        }
+        objective.getScoreboard().resetScores(playerName);
+        for (Objective boardObjective : objective.getScoreboard().getObjectives()) {
+            if (!boardObjective.getName().equals(objective.getName())) {
+                boardObjective.getScore(playerName).setScore(scores.get(boardObjective.getName()));
             }
         }
     }
