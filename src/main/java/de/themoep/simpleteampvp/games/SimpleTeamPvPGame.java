@@ -21,6 +21,7 @@ import org.bukkit.entity.Creature;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
@@ -851,7 +852,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void onDamageEntity(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player)) {
+        if (!(event.getDamager() instanceof Player || event.getDamager() instanceof Projectile)) {
             return;
         }
 
@@ -859,10 +860,12 @@ public abstract class SimpleTeamPvPGame implements Listener {
             return;
         }
 
-        Player player = (Player) event.getDamager();
-
-        if (stopInteract && !player.hasPermission(SimpleTeamPvP.BYPASS_PERM)) {
-            event.setCancelled(true);
+        if (stopInteract) {
+            if (event.getDamager() instanceof Player) {
+                event.setCancelled(!event.getDamager().hasPermission(SimpleTeamPvP.BYPASS_PERM));
+            } else {
+                event.setCancelled(true);
+            }
         }
     }
 
