@@ -888,7 +888,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             return;
         }
 
-        if (!(event.getEntity() instanceof Creature || event.getEntity() instanceof Player)) {
+        if (event.getEntity() instanceof Creature || event.getEntity() instanceof Player) {
             return;
         }
 
