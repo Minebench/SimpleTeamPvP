@@ -593,7 +593,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     player.setBedSpawnLocation(spawnLocation, true);
                 }
             }
-            removeScore(pointObjective, team.getColor() + team.getName());
+            pointObjective.getScore(team.getColor() + team.getName()).setScore(0);
         }
         state = GameState.RUNNING;
         if(showScore) {
