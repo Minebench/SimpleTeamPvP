@@ -657,11 +657,12 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 if (killScore.getScore() >= amount) {
                     if (killScore.getScore() > amount) {
                         killScoreWinners.clear();
+                        amount = killScore.getScore();
                     }
                     killScoreWinners.add(plugin.addServerTag(entry));
                 }
             }
-            if (killScoreWinners.size() > 0) {
+            if (amount > 0 && killScoreWinners.size() > 0) {
                 plugin.getServer().broadcastMessage(ChatColor.GREEN + "Meiste Kills ("
                         + ChatColor.YELLOW + amount
                         + ChatColor.GREEN + "): " + StringUtils.join(killScoreWinners, ", "));
@@ -1189,6 +1190,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             if (score != null && score.getScore() >= highestKillStreakScore) {
                 if (score.getScore() > highestKillStreakScore) {
                     highestKillStreakPlayers.clear();
+                    highestKillStreakScore = score.getScore();
                 }
                 highestKillStreakPlayers.add(plugin.addServerTag(name));
             }
