@@ -24,14 +24,19 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -114,6 +119,9 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     @GameConfigSetting(key = "stop-interact")
     private boolean stopInteract = false;
+
+    @GameConfigSetting(key = "stop-container-access")
+    private boolean stopContainerAccess = false;
 
     @GameConfigSetting(key = "kill-streak.name")
     private boolean killStreakDisplayName = false;
@@ -830,6 +838,19 @@ public abstract class SimpleTeamPvPGame implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOW)
+    public void onHangingPlace(HangingPlaceEvent event) {
+        if(getState() != GameState.RUNNING)
+            return;
+
+        if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
+            return;
+
+        if (stopBuild) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
     public void onDamageEntity(EntityDamageByEntityEvent event) {
         if(getState() != GameState.RUNNING)
             return;
@@ -850,7 +871,20 @@ public abstract class SimpleTeamPvPGame implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOW)
-    public void onInteract(PlayerInteractEntityEvent event) {
+    public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
+        if(getState() != GameState.RUNNING)
+            return;
+
+        if(event.getRemover().hasPermission(SimpleTeamPvP.BYPASS_PERM))
+            return;
+
+        if (stopInteract || stopBuild) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onEntityInteract(PlayerInteractEntityEvent event) {
         if(getState() != GameState.RUNNING)
             return;
 
@@ -859,6 +893,30 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
         if (stopInteract) {
             event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onInteract(PlayerInteractEvent event) {
+        if(getState() != GameState.RUNNING)
+            return;
+
+        if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
+            return;
+
+        if((event.getAction() == Action.PHYSICAL) && event.getClickedBlock().getType() == Material.SOIL) {
+            event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM));
+        }
+
+        if(event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK)
+            return;
+
+        if(event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            if (stopInteract && event.getClickedBlock().getType() == Material.BED_BLOCK) {
+                event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM));
+            } else if (stopContainerAccess && event.getClickedBlock().getState() instanceof InventoryHolder) {
+                event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM));
+            }
         }
     }
 

@@ -89,20 +89,8 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
         if(getState() != GameState.RUNNING)
             return;
 
-        if(event.getAction() == Action.PHYSICAL && event.getClickedBlock().getType() == Material.SOIL) {
-            event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM));
-        }
-
         if(event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK)
             return;
-
-        if(event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            if(event.getClickedBlock().getState() instanceof InventoryHolder
-                    || event.getClickedBlock().getType() == Material.BED_BLOCK
-                    ) {
-                event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM));
-            }
-        }
 
         if(getPointItem() == null)
             return;

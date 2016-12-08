@@ -241,7 +241,7 @@ public class XmasGame extends SimpleTeamPvPGame {
     }
 
     @EventHandler(priority = EventPriority.LOW)
-    public void onInteract(PlayerInteractEntityEvent event) {
+    public void onEntityInteract(PlayerInteractEntityEvent event) {
         if(getState() != GameState.RUNNING)
             return;
 
