@@ -777,6 +777,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 }
             }
         }
+        HandlerList.unregisterAll(this);
         state = GameState.DESTROYED;
     }
 
