@@ -500,14 +500,22 @@ public class SimpleTeamPvP extends JavaPlugin {
     }
 
     public String addServerTag(String name) {
-        Player player = getServer().getPlayer(name);
-        name = ChatColor.WHITE + name + ChatColor.GRAY;
-        if(player != null && getServerTags() != null) {
-            ServerInfo server = getServerTags().getPlayerServer(player);
-            if(server != null && !server.getTag().isEmpty()) {
-                name += " (" + server.getTag() + ")";
+        String taggedName = addServerTag(getServer().getPlayer(name));
+        return taggedName != null ? taggedName : name;
+    }
+
+    public String addServerTag(Player player) {
+        if(player != null) {
+            String name = player.getName();
+            name = ChatColor.WHITE + name + ChatColor.GRAY;
+            if (getServerTags() != null) {
+                ServerInfo server = getServerTags().getPlayerServer(player);
+                if (server != null && !server.getTag().isEmpty()) {
+                    name += " (" + server.getTag() + ")";
+                }
             }
+            return name;
         }
-        return name;
+        return null;
     }
 }

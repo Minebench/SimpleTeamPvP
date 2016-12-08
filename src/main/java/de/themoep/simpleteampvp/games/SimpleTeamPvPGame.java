@@ -1,7 +1,6 @@
 package de.themoep.simpleteampvp.games;
 
 import de.themoep.servertags.bukkit.ServerInfo;
-import de.themoep.servertags.bukkit.ServerTags;
 import de.themoep.simpleteampvp.LocationInfo;
 import de.themoep.simpleteampvp.SimpleTeamPvP;
 import de.themoep.simpleteampvp.TeamInfo;
@@ -86,6 +85,12 @@ public abstract class SimpleTeamPvPGame implements Listener {
     private BukkitTask teleportTask;
     private BukkitTask fwTask;
     private Objective pointObjective = null;
+    private Objective killStreakObjectiveTab = null;
+    private Objective killStreakObjectiveName = null;
+    private List<String> highestKillStreakPlayers = new ArrayList<>();
+    private int highestKillStreakScore = 0;
+
+    private Objective playerKillsObjective = null;
 
     /* --- Settings --- */
     @GameConfigSetting(key = "use-kits")
@@ -105,6 +110,12 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     @GameConfigSetting(key = "stop-interact")
     private boolean stopInteract = false;
+
+    @GameConfigSetting(key = "kill-streak.name")
+    private boolean killStreakDisplayName = false;
+
+    @GameConfigSetting(key = "kill-streak.tab")
+    private boolean killStreakDisplayTab = false;
 
     @GameConfigSetting(key = "respawn-resistance")
     private int respawnResistance = 5;
@@ -269,16 +280,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
         }
 
         state = GameState.INITIATED;
-        pointObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().getObjective("teamPoints");
-        if(pointObjective != null) {
-            try {
-                pointObjective.unregister();
-            } catch (IllegalStateException e) {
-                // wat
-            }
-        }
-        pointObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().registerNewObjective("teamPoints", "dummy");
-        setObjectiveDisplay(objectiveDisplay);
     }
 
     /**
@@ -340,21 +341,20 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
         plugin.getLogger().log(Level.INFO, "perfectSize: " + perfectSize);
 
-        if(plugin.getServer().getPluginManager().getPlugin("ServerTags") != null) {
-            ServerTags serverTags = (ServerTags) plugin.getServer().getPluginManager().getPlugin("ServerTags");
+        if(plugin.getServerTags() != null) {
             // Team key -> Tag
-            Map<String, String> teamTags = new HashMap<String, String>();
+            Map<String, String> teamTags = new HashMap<>();
 
             for(TeamInfo team : plugin.getTeamMap().values()) {
 
-                Map<String, Integer> tags = new HashMap<String, Integer>();
+                Map<String, Integer> tags = new HashMap<>();
                 for(String playerName : team.getScoreboardTeam().getEntries()) {
                     Player player = plugin.getServer().getPlayer(playerName);
                     if(player == null)
                         continue;
 
                     String tag = "no server";
-                    ServerInfo serverInfo = serverTags.getPlayerServer(player);
+                    ServerInfo serverInfo = plugin.getServerTags().getPlayerServer(player);
                     if(serverInfo != null) {
                         tag = serverInfo.getTag();
                     }
@@ -387,7 +387,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                         continue;
 
                     String tag = "no server";
-                    ServerInfo serverInfo = serverTags.getPlayerServer(player);
+                    ServerInfo serverInfo = plugin.getServerTags().getPlayerServer(player);
                     if(serverInfo != null) {
                         tag = serverInfo.getTag();
                     }
@@ -421,7 +421,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             Iterator<Player> playerIterator = playersToJoin.iterator();
             while(playerIterator.hasNext()) {
                 Player player = playerIterator.next();
-                ServerInfo serverInfo = serverTags.getPlayerServer(player);
+                ServerInfo serverInfo = plugin.getServerTags().getPlayerServer(player);
                 if(serverInfo != null && teamTags.containsValue(serverInfo.getTag())) {
                     for(TeamInfo team : plugin.getTeamMap().values()) {
                         if(team.getSize() < perfectSize && teamTags.containsKey(team.getName()) && teamTags.get(team.getName()).equals(serverInfo.getTag())) {
@@ -493,28 +493,60 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(getState() != GameState.WAITING)
             return false;
 
+        pointObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().getObjective("teamPoints");
+        if(pointObjective != null) {
+            try {
+                pointObjective.unregister();
+            } catch (IllegalStateException e) {
+                plugin.getLogger().log(Level.WARNING, "Could not unregister point objective?", e);
+            }
+        }
+        pointObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().registerNewObjective("teamPoints", "dummy");
+        setObjectiveDisplay(objectiveDisplay);
+
+        playerKillsObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().getObjective("playerKills");
+        if(playerKillsObjective != null) {
+            try {
+                playerKillsObjective.unregister();
+            } catch (IllegalStateException e) {
+                plugin.getLogger().log(Level.WARNING, "Could not unregister player kills objective?", e);
+            }
+        }
+        playerKillsObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().registerNewObjective("playerKills", "playerKillCount");
+
+        if (killStreakDisplayTab) {
+            killStreakObjectiveTab = plugin.getServer().getScoreboardManager().getMainScoreboard().getObjective("killStreakTab");
+            if(killStreakObjectiveTab != null) {
+                try {
+                    killStreakObjectiveTab.unregister();
+                } catch (IllegalStateException e) {
+                    plugin.getLogger().log(Level.WARNING, "Could not unregister kill streak tab objective?", e);
+                }
+            }
+            killStreakObjectiveTab = plugin.getServer().getScoreboardManager().getMainScoreboard().registerNewObjective("killStreakTab", "playerKillCount");
+            killStreakObjectiveTab.setDisplaySlot(DisplaySlot.PLAYER_LIST);
+        }
+
+        if (killStreakDisplayName) {
+            killStreakObjectiveName = plugin.getServer().getScoreboardManager().getMainScoreboard().getObjective("killStreakName");
+            if(killStreakObjectiveName != null) {
+                try {
+                    killStreakObjectiveName.unregister();
+                } catch (IllegalStateException e) {
+                    plugin.getLogger().log(Level.WARNING, "Could not unregister kill streak name objective?", e);
+                }
+            }
+            killStreakObjectiveName = plugin.getServer().getScoreboardManager().getMainScoreboard().registerNewObjective("killStreakName", "playerKillCount");
+            killStreakObjectiveName.setDisplaySlot(DisplaySlot.BELOW_NAME);
+        }
+
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
 
         for(TeamInfo team : plugin.getTeamMap().values()) {
-            Set<String> teamPlayers = team.getScoreboardTeam().getEntries();
-            if(plugin.getServer().getPluginManager().isPluginEnabled("ServerTags")) {
-                teamPlayers = new LinkedHashSet<String>();
-                ServerTags serverTags = (ServerTags) plugin.getServer().getPluginManager().getPlugin("ServerTags");
-                for(String name : team.getScoreboardTeam().getEntries()) {
-                    Player player = plugin.getServer().getPlayer(name);
-                    name = ChatColor.WHITE + name + ChatColor.GRAY;
-                    if(player != null) {
-                        ServerInfo server = serverTags.getPlayerServer(player);
-                        if(server != null && !server.getTag().isEmpty()) {
-                            name += " (" + server.getTag() + ")";
-                        }
-                    }
-                    teamPlayers.add(name);
-                }
-            }
 
             plugin.getServer().broadcastMessage(ChatColor.GREEN + "Team " + team.getScoreboardTeam().getPrefix() + team.getScoreboardTeam().getDisplayName() + team.getScoreboardTeam().getSuffix() + ChatColor.GREEN + ":");
-            plugin.getServer().broadcastMessage(ChatColor.WHITE + StringUtils.join(teamPlayers, ", "));
+            showPlayerList(team);
+
             Location spawnLocation = team.getSpawn() != null ? team.getSpawn().getLocation() :
                     team.getPoint() != null ? team.getPoint().getLocation() :
                             plugin.getServer().getWorlds().get(0).getSpawnLocation();
@@ -588,25 +620,12 @@ public abstract class SimpleTeamPvPGame implements Listener {
             if(team.getScore() >= maxScore) {
                 winTeams.add(team);
             }
-            Set<String> teamPlayers = team.getScoreboardTeam().getEntries();
-            if(plugin.getServer().getPluginManager().isPluginEnabled("ServerTags")) {
-                teamPlayers = new LinkedHashSet<String>();
-                ServerTags serverTags = (ServerTags) plugin.getServer().getPluginManager().getPlugin("ServerTags");
-                for(String name : team.getScoreboardTeam().getEntries()) {
-                    Player player = plugin.getServer().getPlayer(name);
-                    name = ChatColor.WHITE + name + ChatColor.GRAY;
-                    if(player != null) {
-                        ServerInfo server = serverTags.getPlayerServer(player);
-                        if(server != null && !server.getTag().isEmpty()) {
-                            name += " (" + server.getTag() + ")";
-                        }
-                    }
-                    teamPlayers.add(name);
-                }
-            }
             plugin.getServer().broadcastMessage(ChatColor.GREEN + "Team " + team.getScoreboardTeam().getPrefix() + team.getScoreboardTeam().getDisplayName() + team.getScoreboardTeam().getSuffix() + ChatColor.GREEN + (winScore > 0 ? " - Score: " + ChatColor.RED + team.getScore() : ":"));
-            plugin.getServer().broadcastMessage(ChatColor.WHITE + StringUtils.join(teamPlayers, ", "));
+            showPlayerList(team);
 
+            for (String entry : team.getScoreboardTeam().getEntries()) {
+                calculateHighestKillStreak(entry);
+            }
         }
         plugin.getServer().broadcastMessage(ChatColor.GREEN + "Spiel beendet!");
 
@@ -624,6 +643,31 @@ public abstract class SimpleTeamPvPGame implements Listener {
             plugin.getServer().broadcastMessage(ChatColor.GREEN + "Kein Team hat das Spiel gewonnen!");
         }
         plugin.getServer().broadcastMessage("");
+
+        if (playerKillsObjective != null) {
+            List<String> killScoreWinners = new ArrayList<>();
+            int amount = 0;
+            for (String entry : playerKillsObjective.getScoreboard().getEntries()) {
+                Score killScore = playerKillsObjective.getScore(entry);
+                if (killScore.getScore() >= amount) {
+                    if (killScore.getScore() > amount) {
+                        killScoreWinners.clear();
+                    }
+                    killScoreWinners.add(plugin.addServerTag(entry));
+                }
+            }
+            if (killScoreWinners.size() > 0) {
+                plugin.getServer().broadcastMessage(ChatColor.GREEN + "Meiste Kills ("
+                        + ChatColor.YELLOW + amount
+                        + ChatColor.GREEN + "): " + StringUtils.join(killScoreWinners, ", "));
+            }
+        }
+
+        if (highestKillStreakScore > 0) {
+            plugin.getServer().broadcastMessage(ChatColor.GREEN + "Höchste Killstreak ("
+                    + ChatColor.YELLOW + highestKillStreakScore
+                    + ChatColor.GREEN + "): " + StringUtils.join(highestKillStreakPlayers, ", "));
+        }
 
         fwTask = plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable() {
             public void run() {
@@ -688,11 +732,31 @@ public abstract class SimpleTeamPvPGame implements Listener {
         }, 20 * 10);
     }
 
+    private void showPlayerList(TeamInfo team) {
+        Set<String> teamPlayers = team.getScoreboardTeam().getEntries();
+        if(plugin.getServerTags() != null) {
+            teamPlayers = new LinkedHashSet<>();
+            for(String name : team.getScoreboardTeam().getEntries()) {
+                teamPlayers.add(plugin.addServerTag(name));
+            }
+        }
+        plugin.getServer().broadcastMessage(ChatColor.WHITE + StringUtils.join(teamPlayers, ", "));
+    }
+
 
     protected void destroy() {
         teleportTask.cancel();
         fwTask.cancel();
         regenPointBlocks();
+        for (Objective o : new Objective[]{pointObjective, killStreakObjectiveTab, killStreakObjectiveName, playerKillsObjective}) {
+            if(o != null) {
+                try {
+                    o.unregister();
+                } catch (IllegalStateException e) {
+                    plugin.getLogger().log(Level.WARNING, "Could not unregister objective " + o.getName() + " ?", e);
+                }
+            }
+        }
         state = GameState.DESTROYED;
     }
 
@@ -877,6 +941,14 @@ public abstract class SimpleTeamPvPGame implements Listener {
             }
             if (respawnResistance > 0) {
                 event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, respawnResistance * 20, 5, true));
+            }
+
+            calculateHighestKillStreak(event.getPlayer());
+            if (killStreakDisplayName && killStreakObjectiveName != null) {
+                killStreakObjectiveName.getScore(event.getPlayer().getName()).setScore(0);
+            }
+            if (killStreakDisplayTab && killStreakObjectiveTab != null) {
+                killStreakObjectiveTab.getScore(event.getPlayer().getName()).setScore(0);
             }
         }
     }
@@ -1081,6 +1153,28 @@ public abstract class SimpleTeamPvPGame implements Listener {
             }
         }, 1L, 1L);
         return fLocs.size();
+    }
+
+    private void calculateHighestKillStreak(Player player) {
+        calculateHighestKillStreak(player.getName());
+    }
+
+    private void calculateHighestKillStreak(String name) {
+        Objective killStreakObjective = null;
+        if (killStreakDisplayName && killStreakObjectiveName != null) {
+            killStreakObjective = killStreakObjectiveName;
+        } else if (killStreakDisplayTab && killStreakObjectiveTab != null) {
+            killStreakObjective = killStreakObjectiveTab;
+        }
+        if (killStreakObjective != null) {
+            Score score = killStreakObjective.getScore(name);
+            if (score != null && score.getScore() >= highestKillStreakScore) {
+                if (score.getScore() > highestKillStreakScore) {
+                    highestKillStreakPlayers.clear();
+                }
+                highestKillStreakPlayers.add(plugin.addServerTag(name));
+            }
+        }
     }
 
     public String toString() {
