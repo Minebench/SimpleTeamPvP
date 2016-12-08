@@ -153,7 +153,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 String typeName = field.getType().getSimpleName();
                 if (type instanceof ParameterizedType) {
                     ParameterizedType pType = (ParameterizedType)type;
-                    typeName = pType.getRawType().getTypeName().getClass().getSimpleName() + "<" + pType.getActualTypeArguments()[0].getClass().getSimpleName() + ">";
+                    typeName = pType.getRawType().getClass().getSimpleName() + "<" + pType.getActualTypeArguments()[0].getClass().getSimpleName() + ">";
                 }
                 Object value = null;
                 try {
