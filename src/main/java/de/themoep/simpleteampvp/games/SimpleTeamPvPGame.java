@@ -157,9 +157,9 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     String typeArgName = pType.getActualTypeArguments()[0].getTypeName();
                     typeName = rawTypeName.substring(rawTypeName.lastIndexOf('.') + 1) + "<" + typeArgName.substring(typeArgName.lastIndexOf('.') + 1) + ">";
                 }
-                Object value = null;
+                Object value, defValue = null;
                 try {
-                    value = field.get(this);
+                    value = defValue = field.get(this);
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                     continue;
@@ -220,7 +220,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     default:
                          value = game.get(config.key(), value);
                 }
-                if (value != null) {
+                if (value != null && (value instanceof Boolean && !value.equals(defValue))) {
                     try {
                         plugin.getLogger().log(Level.INFO, config.key().replace('-', ' ') + ": " + value);
                         field.set(this, value);
@@ -234,13 +234,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 }
             }
         }
-
-        /*
-
-        pointItem = game.getItemStack("pointitem");
-        if (pointItem != null) {
-            plugin.getLogger().log(Level.INFO, "Point item is " + pointItem);
-        }*/
 
         if(pointItemChestLocation != null) {
             Location loc = pointItemChestLocation.getLocation();
@@ -265,34 +258,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
             }
         }
 
-        /*duration = game.getInt("duration", 0);
-        plugin.getLogger().log(Level.INFO, "Duration: " + duration);
-        winScore = game.getInt("winscore", -1);
-        plugin.getLogger().log(Level.INFO, "Winscore: " + winScore);
-        useKits = game.getBoolean("use-kits", false);
-        plugin.getLogger().log(Level.INFO, "Use kits: " + useKits);
-        showScore = game.getBoolean("show-score", false);
-        plugin.getLogger().log(Level.INFO, "Show score: " + showScore);
-        showScoreExp = game.getBoolean("score-in-exp-bar", false);
-        plugin.getLogger().log(Level.INFO, "Show score in exp bar: " + showScoreExp);
-        stopBuild = game.getBoolean("stop-build", false);
-        plugin.getLogger().log(Level.INFO, "Stop build: " + filterDrops);
-        stopInteract = game.getBoolean("stop-interact", false);
-        plugin.getLogger().log(Level.INFO, "Stop interact: " + filterDrops);
-        filterDrops = game.getBoolean("custom-death-drops", false);
-        plugin.getLogger().log(Level.INFO, "Custom death drops: " + filterDrops);
-        respawnResistance = game.getInt("respawn-reistance", 5);
-        plugin.getLogger().log(Level.INFO, "respawnResistance: " + respawnResistance);
-        objectiveDisplay = ChatColor.translateAlternateColorCodes('&', game.getString("objective-display", "Points (%winscore%)"));
-        plugin.getLogger().log(Level.INFO, "Objective display: " + objectiveDisplay);
-
-        try {
-            pointBlock = Material.matchMaterial(game.getString("pointblock"));
-            plugin.getLogger().log(Level.INFO, "Point block: " + pointBlock);
-        } catch (IllegalArgumentException e) {
-            pointBlock = Material.AIR;
-            plugin.getLogger().log(Level.WARNING, game.getString("pointblock", "null") + " is not a valid Material key for the point block");
-        }*/
         if(pointItem == null) {
             plugin.getLogger().log(Level.WARNING, "No point item configured!");
             pointItem = new ItemStack(pointBlock != Material.AIR ? pointBlock : Material.SLIME_BALL, 1);
@@ -300,35 +265,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             meta.setDisplayName("Point Item");
             pointItem.setItemMeta(meta);
         }
-        /*
-        plugin.getLogger().log(Level.INFO, "Loading Drops:");
-        for (String drop : game.getStringList("drops")) {
-            drops.add(drop.toUpperCase());
-            plugin.getLogger().log(Level.INFO, "Added " + drop);
-        }
 
-        for (String deathDrop : game.getStringList("death-drops")) {
-            plugin.getLogger().log(Level.INFO, "Loading DeathDrops...");
-            try {
-                int amount = 1;
-                String[] partsA = deathDrop.split(" ");
-                if (partsA.length > 1) {
-                    amount = Integer.parseInt(partsA[1]);
-                }
-                String[] partsB = partsA[0].split(":");
-                short damage = 0;
-                if (partsB.length > 1) {
-                    damage = Short.parseShort(partsB[1]);
-                }
-                deathDrops.add(new ItemStack(Material.valueOf(partsB[0].toUpperCase()), amount, damage));
-                plugin.getLogger().log(Level.INFO, "Added " + deathDrop);
-            } catch (NumberFormatException e) {
-                plugin.getLogger().log(Level.WARNING, deathDrop + " does contain an invalid number?");
-            } catch (IllegalArgumentException e) {
-                plugin.getLogger().log(Level.WARNING, deathDrop + " does not contain a valid Bukkit Material key?");
-            }
-        }
-        */
         state = GameState.INITIATED;
         pointObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().getObjective("teamPoints");
         if(pointObjective != null) {
