@@ -1,5 +1,7 @@
 package de.themoep.simpleteampvp;
 
+import de.themoep.servertags.bukkit.ServerInfo;
+import de.themoep.servertags.bukkit.ServerTags;
 import de.themoep.simpleteampvp.commands.GameSubCommand;
 import de.themoep.simpleteampvp.commands.KitSubCommand;
 import de.themoep.simpleteampvp.commands.PluginCommandExecutor;
@@ -56,8 +58,12 @@ public class SimpleTeamPvP extends JavaPlugin {
     private SimpleTeamPvPGame game = null;
     private KitGui kitGui;
     private Map<String, SimpleTeamPvPGame> gameMap = new HashMap<String, SimpleTeamPvPGame>();
+    private ServerTags serverTags = null;
 
     public void onEnable() {
+        if(getServer().getPluginManager().isPluginEnabled("ServerTags")) {
+            serverTags = (ServerTags) getServer().getPluginManager().getPlugin("ServerTags");
+        }
         saveDefaultConfig();
         loadConfig();
         PluginCommandExecutor comEx = new PluginCommandExecutor(this);
@@ -487,5 +493,21 @@ public class SimpleTeamPvP extends JavaPlugin {
 
     public Map<String, SimpleTeamPvPGame> getGameMap() {
         return gameMap;
+    }
+
+    public ServerTags getServerTags() {
+        return serverTags;
+    }
+
+    public String addServerTag(String name) {
+        Player player = getServer().getPlayer(name);
+        name = ChatColor.WHITE + name + ChatColor.GRAY;
+        if(player != null && getServerTags() != null) {
+            ServerInfo server = getServerTags().getPlayerServer(player);
+            if(server != null && !server.getTag().isEmpty()) {
+                name += " (" + server.getTag() + ")";
+            }
+        }
+        return name;
     }
 }
