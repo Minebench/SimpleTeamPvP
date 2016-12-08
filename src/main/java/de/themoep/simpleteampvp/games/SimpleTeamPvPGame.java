@@ -1016,23 +1016,10 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
             calculateHighestKillStreak(event.getPlayer());
             if (killStreakDisplayName && killStreakObjectiveName != null) {
-                removeScore(killStreakObjectiveName, event.getPlayer().getName());
+                killStreakObjectiveName.getScore(event.getPlayer().getName()).setScore(0);
             }
             if (killStreakDisplayTab && killStreakObjectiveTab != null) {
-                removeScore(killStreakObjectiveTab, event.getPlayer().getName());
-            }
-        }
-    }
-
-    private void removeScore(Objective objective, String playerName){
-        Map<String, Integer> scores = new HashMap<>();
-        for (Objective boardObjective : objective.getScoreboard().getObjectives()) {
-            scores.put(boardObjective.getName(), boardObjective.getScore(playerName).getScore());
-        }
-        objective.getScoreboard().resetScores(playerName);
-        for (Objective boardObjective : objective.getScoreboard().getObjectives()) {
-            if (!boardObjective.getName().equals(objective.getName())) {
-                boardObjective.getScore(playerName).setScore(scores.get(boardObjective.getName()));
+                killStreakObjectiveTab.getScore(event.getPlayer().getName()).setScore(0);
             }
         }
     }
