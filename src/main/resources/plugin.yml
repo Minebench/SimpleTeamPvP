@@ -3,7 +3,7 @@ main: de.themoep.simpleteampvp.SimpleTeamPvP
 version: '${minecraft.plugin.version}'
 description: ${project.description}
 authors: [Phoenix616]
-soft-depend: [ServerTags]
+softdepend: [ServerTags]
 commands:
    simpleteampvp:
       aliases: [stp]
