@@ -153,9 +153,9 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
         if(team == null)
             return;
 
-        if(getDrops().contains(event.getBlock().getType().toString())) {
+        if(getItemWhitelist().contains(event.getBlock().getType().toString())) {
             event.setCancelled(true);
-            event.getBlock().getDrops().stream().filter(this::isDrop).forEach(drop -> {
+            event.getBlock().getDrops().stream().filter(this::isWhitelisted).forEach(drop -> {
                 event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation(), drop);
             });
             BlockState blockState = event.getBlock().getState();
@@ -169,7 +169,7 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
             } else if (event.getBlock().getState().getData() instanceof CocoaPlant) {
                 CocoaPlant cocoaPlant = (CocoaPlant) blockState.getData();
                 ItemStack cocoa = new ItemStack(Material.INK_SACK, 1, (short) 3);
-                if (cocoaPlant.getSize() == CocoaPlant.CocoaPlantSize.LARGE && isDrop(cocoa)) {
+                if (cocoaPlant.getSize() == CocoaPlant.CocoaPlantSize.LARGE && isWhitelisted(cocoa)) {
                     for (int i = 0; i < 3; i++) {
                         event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation(), cocoa);
                     }

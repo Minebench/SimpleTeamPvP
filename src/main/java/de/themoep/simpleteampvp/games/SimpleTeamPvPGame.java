@@ -28,6 +28,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -102,8 +103,11 @@ public abstract class SimpleTeamPvPGame implements Listener {
     @GameConfigSetting(key = "score-in-exp-bar")
     private boolean showScoreExp = false;
 
-    @GameConfigSetting(key = "custom-death-drops")
+    @GameConfigSetting(key = "filter.drops")
     private boolean filterDrops = false;
+
+    @GameConfigSetting(key = "filter.crafting")
+    private boolean filterCrafting = false;
 
     @GameConfigSetting(key = "stop-build")
     private boolean stopBuild = false;
@@ -126,8 +130,8 @@ public abstract class SimpleTeamPvPGame implements Listener {
     @GameConfigSetting(key = "pointitem")
     private ItemStack pointItem = null;
 
-    @GameConfigSetting(key = "drops")
-    private Set<String> drops = new HashSet<>();
+    @GameConfigSetting(key = "filter.whitelist")
+    private Set<String> itemWhitelist = new HashSet<>();
 
     @GameConfigSetting(key = "death-drops")
     private Set<ItemStack> deathDrops = new HashSet<>();
@@ -799,7 +803,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         }
 
         if(!event.isCancelled() && filterDrops) {
-            List<ItemStack> drops = event.getBlock().getDrops().stream().filter(this::isDrop).collect(Collectors.toList());
+            List<ItemStack> drops = event.getBlock().getDrops().stream().filter(this::isWhitelisted).collect(Collectors.toList());
             if (drops.size() != event.getBlock().getDrops().size()) {
                 event.setCancelled(true);
                 event.getBlock().setType(Material.AIR);
@@ -864,7 +868,20 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
-        if(filterDrops && !isDrop(event.getItemDrop().getItemStack())) {
+        if(filterDrops && !isWhitelisted(event.getItemDrop().getItemStack())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onItemDrop(CraftItemEvent event) {
+        if(getState() != GameState.RUNNING)
+            return;
+
+        if(event.getWhoClicked().hasPermission(SimpleTeamPvP.BYPASS_PERM))
+            return;
+
+        if(filterCrafting && !isWhitelisted(event.getRecipe().getResult())) {
             event.setCancelled(true);
         }
     }
@@ -898,7 +915,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             if (event.getKeepInventory()) {
                 for (int i = 0; i < player.getInventory().getSize(); i++) {
                     ItemStack item = player.getInventory().getItem(i);
-                    if (isDrop(item)) {
+                    if (isWhitelisted(item)) {
                         player.getInventory().setItem(i, null);
                         player.getLocation().getWorld().dropItem(player.getLocation(), item);
                     }
@@ -907,7 +924,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 Iterator<ItemStack> dropIterator = event.getDrops().iterator();
                 while (dropIterator.hasNext()) {
                     ItemStack drop = dropIterator.next();
-                    if (!isDrop(drop)) {
+                    if (!isWhitelisted(drop)) {
                         dropIterator.remove();
                     }
                 }
@@ -1020,12 +1037,12 @@ public abstract class SimpleTeamPvPGame implements Listener {
         this.pointItem = pointItem;
     }
 
-    public Set<String> getDrops() {
-        return drops;
+    public Set<String> getItemWhitelist() {
+        return itemWhitelist;
     }
 
-    public boolean isDrop(ItemStack item) {
-        return getDrops().contains(item.getType().toString()) || getDrops().contains(item.getType().toString() + ":" + item.getDurability());
+    public boolean isWhitelisted(ItemStack item) {
+        return getItemWhitelist().contains(item.getType().toString()) || getItemWhitelist().contains(item.getType().toString() + ":" + item.getDurability());
     }
 
     public Set<ItemStack> getDeathDrops() {
