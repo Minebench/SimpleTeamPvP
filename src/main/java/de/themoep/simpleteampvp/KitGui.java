@@ -116,6 +116,7 @@ public class KitGui implements Listener {
         inv.setContents(items);
         player.openInventory(inv);
         invOpen.add(player.getUniqueId());
+        player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 100000 * 20, 1));
     }
 
     @EventHandler
@@ -143,6 +144,7 @@ public class KitGui implements Listener {
                 plugin.getLogger().log(Level.WARNING, "Could not find a kit for item " + item.getType() + " in gui of player " + event.getWhoClicked().getName());
                 event.getWhoClicked().sendMessage(ChatColor.RED  + "Could not find a kit for item " + item.getType() + "!");
             } else {
+                event.getWhoClicked().removePotionEffect(PotionEffectType.INVISIBILITY);
                 plugin.applyKit(kit, (Player) event.getWhoClicked());
                 if (plugin.getGame().getRespawnResistance() > 0) {
                     event.getWhoClicked().addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, plugin.getGame().getRespawnResistance() * 20, 5, true));
@@ -195,6 +197,12 @@ public class KitGui implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         invOpen.remove(event.getPlayer().getUniqueId());
+        for (PotionEffect potionEffect : event.getPlayer().getActivePotionEffects()) {
+            if (potionEffect.getType() == PotionEffectType.INVISIBILITY && potionEffect.getDuration() > 3600 * 20) {
+                event.getPlayer().removePotionEffect(PotionEffectType.INVISIBILITY);
+                break;
+            }
+        }
     }
 
     @EventHandler
