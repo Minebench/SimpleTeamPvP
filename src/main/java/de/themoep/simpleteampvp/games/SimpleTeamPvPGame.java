@@ -809,9 +809,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (getState() != GameState.RUNNING)
-            return;
-
         if (event.getWhoClicked().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
@@ -832,9 +829,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void onBlockBreak(BlockBreakEvent event) {
-        if(getState() != GameState.RUNNING)
-            return;
-
         if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
@@ -856,9 +850,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void onBlockPlace(BlockPlaceEvent event) {
-        if(getState() != GameState.RUNNING)
-            return;
-
         if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
@@ -869,9 +860,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void onHangingPlace(HangingPlaceEvent event) {
-        if(getState() != GameState.RUNNING)
-            return;
-
         if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
@@ -882,9 +870,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void onDamageEntity(EntityDamageByEntityEvent event) {
-        if(getState() != GameState.RUNNING)
-            return;
-
         if (!(event.getDamager() instanceof Player)) {
             return;
         }
@@ -902,9 +887,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
-        if(getState() != GameState.RUNNING)
-            return;
-
         if(event.getRemover().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
@@ -915,9 +897,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void onEntityInteract(PlayerInteractEntityEvent event) {
-        if(getState() != GameState.RUNNING)
-            return;
-
         if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
@@ -928,9 +907,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void onInteract(PlayerInteractEvent event) {
-        if(getState() != GameState.RUNNING)
-            return;
-
         if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
@@ -952,9 +928,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     @EventHandler
     public void onItemDrop(PlayerDropItemEvent event) {
-        if(getState() != GameState.RUNNING)
-            return;
-
         if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
@@ -974,9 +947,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     @EventHandler
     public void onItemDrop(CraftItemEvent event) {
-        if(getState() != GameState.RUNNING)
-            return;
-
         if(event.getWhoClicked().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
@@ -987,9 +957,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-        if(getState() != GameState.RUNNING)
-            return;
-
         Player player = event.getEntity();
 
         if(player.hasPermission(SimpleTeamPvP.BYPASS_PERM))
@@ -1033,9 +1000,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent event) {
-        if(getState() != GameState.RUNNING)
-            return;
-
         if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
@@ -1071,9 +1035,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void logPointBlockBreak(BlockBreakEvent event) {
-        if(state != GameState.RUNNING)
-            return;
-
         if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
