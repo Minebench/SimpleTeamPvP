@@ -471,9 +471,9 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
         Iterator<Player> playerIterator = playersToJoin.iterator();
         while(playerIterator.hasNext()) {
-            Player player = playerIterator.next();
             for(TeamInfo team : plugin.getTeamMap().values()) {
                 if(team.getSize() < perfectSize - 0.5) {
+                    Player player = playerIterator.next();
                     team.addPlayer(player);
                     plugin.getLogger().log(Level.INFO, "Added " + player.getName() + " to " + team.getName());
                     playerIterator.remove();
@@ -483,7 +483,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         }
 
         if (playersToJoin.size() > 0) {
-            plugin.getLogger().log(Level.INFO, "Adding " + playersToJoin.size() + " remaining players to teams accordint to their player count:");
+            plugin.getLogger().log(Level.INFO, "Adding " + playersToJoin.size() + " remaining players to teams according to their player count:");
 
             List<TeamInfo> teams = new ArrayList<>(plugin.getTeamMap().values());
             teams.sort((t1, t2) -> Integer.compare(t2.getSize(), t1.getSize()));
