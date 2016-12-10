@@ -1111,7 +1111,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
     }
 
     public boolean isWhitelisted(ItemStack item) {
-        return getItemWhitelist().contains(item.getType().toString()) || getItemWhitelist().contains(item.getType().toString() + ":" + item.getDurability());
+        return item == null || getItemWhitelist().contains(item.getType().toString()) || getItemWhitelist().contains(item.getType().toString() + ":" + item.getDurability());
     }
 
     public Set<ItemStack> getDeathDrops() {
