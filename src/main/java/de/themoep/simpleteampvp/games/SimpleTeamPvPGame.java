@@ -977,8 +977,13 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
         player.setBedSpawnLocation(team.getSpawn().getLocation().add(0,1,0), true);
 
-        for (ItemStack drop : getDeathDrops(team, player)) {
-            player.getWorld().dropItem(player.getLocation(), drop);
+        if (event.getEntity().getLastDamageCause() instanceof EntityDamageByEntityEvent) {
+            EntityDamageByEntityEvent lastDamageCause = (EntityDamageByEntityEvent) event.getEntity().getLastDamageCause();
+            if (lastDamageCause.getDamager() instanceof Player && lastDamageCause.getDamager() != player) {
+                for (ItemStack drop : getDeathDrops(team, player)) {
+                    player.getWorld().dropItem(player.getLocation(), drop);
+                }
+            }
         }
 
         if(!event.getKeepLevel() && showScoreExp) {
