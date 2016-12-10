@@ -156,7 +156,7 @@ public class KitGui implements Listener {
         }
     }
 
-    private void close(Player player) {
+    public void close(Player player) {
         if(invOpen.contains(player.getUniqueId())) {
             invOpen.remove(player.getUniqueId());
             Inventory oldInv = player.getOpenInventory().getTopInventory();

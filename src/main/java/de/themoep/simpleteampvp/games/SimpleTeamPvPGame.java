@@ -746,6 +746,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     for(String name : team.getScoreboardTeam().getEntries()) {
                         Player player = plugin.getServer().getPlayer(name);
                         if(player != null) {
+                            plugin.getKitGui().close(player);
                             team.getScoreboardTeam().removeEntry(name);
                             player.getInventory().clear();
                             player.getInventory().setHelmet(null);
