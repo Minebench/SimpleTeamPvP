@@ -1117,7 +1117,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
     }
 
     public boolean isWhitelisted(ItemStack item) {
-        return item == null || getItemWhitelist().contains(item.getType().toString()) || getItemWhitelist().contains(item.getType().toString() + ":" + item.getDurability());
+        return item == null || item.getType() == Material.AIR || getItemWhitelist().contains(item.getType().toString()) || getItemWhitelist().contains(item.getType().toString() + ":" + item.getDurability());
     }
 
     public List<ItemStack> getDeathDrops() {
