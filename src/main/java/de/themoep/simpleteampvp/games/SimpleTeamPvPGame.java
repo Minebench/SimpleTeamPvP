@@ -948,7 +948,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         }
 
         if (event.getClickedInventory() != event.getWhoClicked().getInventory() || event.getAction() == InventoryAction.COLLECT_TO_CURSOR || event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
-            if (filterDrops && !isWhitelisted(event.getCurrentItem()) && !isWhitelisted(event.getCursor())) {
+            if (filterDrops && !(isWhitelisted(event.getCurrentItem()) && isWhitelisted(event.getCursor()))) {
                 event.setCancelled(true);
             }
         }
@@ -1116,7 +1116,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
     }
 
     public boolean isWhitelisted(ItemStack item) {
-        return item != null && (getItemWhitelist().contains(item.getType().toString()) || getItemWhitelist().contains(item.getType().toString() + ":" + item.getDurability()));
+        return item == null || getItemWhitelist().contains(item.getType().toString()) || getItemWhitelist().contains(item.getType().toString() + ":" + item.getDurability());
     }
 
     public List<ItemStack> getDeathDrops() {
