@@ -112,6 +112,12 @@ public abstract class SimpleTeamPvPGame implements Listener {
     @GameConfigSetting(key = "score-in-exp-bar")
     private boolean showScoreExp = false;
 
+    @GameConfigSetting(key = "filter.break")
+    private boolean filterBreak = false;
+
+    @GameConfigSetting(key = "filter.place")
+    private boolean filterPlace = false;
+
     @GameConfigSetting(key = "filter.drops")
     private boolean filterDrops = false;
 
@@ -854,7 +860,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
-        if (stopBuild) {
+        if (stopBuild || filterBreak && !isWhitelisted(event.getBlock())) {
             event.setCancelled(true);
         }
     }
@@ -864,7 +870,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
-        if (stopBuild) {
+        if (stopBuild || filterPlace && !isWhitelisted(event.getBlock())) {
             event.setCancelled(true);
         }
     }
@@ -1117,7 +1123,15 @@ public abstract class SimpleTeamPvPGame implements Listener {
     }
 
     public boolean isWhitelisted(ItemStack item) {
-        return item == null || item.getType() == Material.AIR || getItemWhitelist().contains(item.getType().toString()) || getItemWhitelist().contains(item.getType().toString() + ":" + item.getDurability());
+        return item == null || isWhitelisted(item.getType(), item.getData().getData());
+    }
+
+    private boolean isWhitelisted(Block block) {
+        return block == null || isWhitelisted(block.getType(), block.getState().getData().getData());
+    }
+
+    public boolean isWhitelisted(Material type, int data) {
+        return type == Material.AIR || getItemWhitelist().contains(type.toString()) || getItemWhitelist().contains(type.toString() + ":" + data);
     }
 
     public List<ItemStack> getDeathDrops() {
