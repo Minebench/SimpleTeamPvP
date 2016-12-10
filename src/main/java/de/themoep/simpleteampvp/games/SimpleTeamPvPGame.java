@@ -146,7 +146,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
     private Set<String> itemWhitelist = new HashSet<>();
 
     @GameConfigSetting(key = "death-drops")
-    private Set<ItemStack> deathDrops = new HashSet<>();
+    private List<ItemStack> deathDrops = new ArrayList<>();
 
     @GameConfigSetting(key = "winscore")
     private int winScore = -1;
@@ -1119,7 +1119,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         return item == null || getItemWhitelist().contains(item.getType().toString()) || getItemWhitelist().contains(item.getType().toString() + ":" + item.getDurability());
     }
 
-    public Set<ItemStack> getDeathDrops() {
+    public List<ItemStack> getDeathDrops() {
         return deathDrops;
     }
 
