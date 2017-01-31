@@ -59,6 +59,7 @@ public class SimpleTeamPvP extends JavaPlugin {
     private KitGui kitGui;
     private Map<String, SimpleTeamPvPGame> gameMap = new HashMap<String, SimpleTeamPvPGame>();
     private ServerTags serverTags = null;
+    private boolean useMultiLineApi = false;
 
     public void onEnable() {
         if(getServer().getPluginManager().isPluginEnabled("ServerTags")) {
@@ -81,6 +82,7 @@ public class SimpleTeamPvP extends JavaPlugin {
     }
 
     private void loadConfig() {
+        useMultiLineApi = getServer().getPluginManager().isPluginEnabled("MultiLineAPI");
         kitGui = new KitGui(this);
         teamMap = new HashMap<String, TeamInfo>();
         kitMap = new LinkedHashMap<String, KitInfo>();
@@ -517,5 +519,9 @@ public class SimpleTeamPvP extends JavaPlugin {
             return name;
         }
         return null;
+    }
+
+    public boolean useMultiLineApi() {
+        return useMultiLineApi;
     }
 }

@@ -3,7 +3,9 @@ package de.themoep.simpleteampvp.games;
 import de.themoep.simpleteampvp.KitInfo;
 import de.themoep.simpleteampvp.SimpleTeamPvP;
 import de.themoep.simpleteampvp.TeamInfo;
+import net.blitzcube.mlapi.MultiLineAPI;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -63,23 +65,28 @@ public class CtwGame extends SimpleTeamPvPGame {
         }
         plugin.getServer().getScoreboardManager().getMainScoreboard().clearSlot(DisplaySlot.PLAYER_LIST);
 
-        carriedObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().getObjective("carriedPoints");
-        if(carriedObjective != null) {
-            try {
-                carriedObjective.unregister();
-            } catch (IllegalStateException e) {
-                // wat
+        if (!plugin.useMultiLineApi()) {
+            carriedObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().getObjective("carriedPoints");
+            if (carriedObjective != null) {
+                try {
+                    carriedObjective.unregister();
+                } catch (IllegalStateException e) {
+                    // wat
+                }
             }
+            carriedObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().registerNewObjective("carriedPoints", "dummy");
+            carriedObjective.setDisplayName("Wolle");
+            carriedObjective.setDisplaySlot(DisplaySlot.BELOW_NAME);
         }
-        carriedObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().registerNewObjective("carriedPoints", "dummy");
-        carriedObjective.setDisplayName("Wolle");
-        carriedObjective.setDisplaySlot(DisplaySlot.BELOW_NAME);
         return super.start();
     }
 
     @Override
     public void stop() {
-            super.stop();
+        super.stop();
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            resetCarried(player);
+        }
         if (carriedObjective != null) {
             try {
                 carriedObjective.unregister();
@@ -115,7 +122,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             event.getPlayer().sendMessage(ChatColor.YELLOW + "Du hast einen Wolleblock für dein Team hinzugefügt!");
         }
 
-        decrementCarried(event.getPlayer(), 1);
+        updateCarried(event.getPlayer());
 
     }
 
@@ -221,12 +228,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             return;
         }
 
-        TeamInfo team = plugin.getTeam(event.getPlayer());
-        if (team == null) {
-            return;
-        }
-
-        decrementCarried(event.getPlayer(), event.getItemDrop().getItemStack().getAmount());
+        updateCarried(event.getPlayer());
     }
 
     @EventHandler
@@ -240,12 +242,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             return;
         }
 
-        TeamInfo team = plugin.getTeam(event.getPlayer());
-        if (team == null) {
-            return;
-        }
-
-        incrementCarried(event.getPlayer(), event.getItem().getItemStack().getAmount());
+        updateCarried(event.getPlayer());
     }
 
     @EventHandler
@@ -274,19 +271,45 @@ public class CtwGame extends SimpleTeamPvPGame {
     }
 
     private void resetCarried(Player player) {
-        carriedObjective.getScore(player.getName()).setScore(0);
-    }
-
-    private void decrementCarried(Player player, int amount) {
-        Score score = carriedObjective.getScore(player.getName());
-        if (score.getScore() > 0) {
-            score.setScore(score.getScore() - amount);
+        if (plugin.useMultiLineApi()) {
+            MultiLineAPI.clearLines(tagController, player);
+        } else {
+            carriedObjective.getScore(player.getName()).setScore(0);
         }
     }
 
-    private void incrementCarried(Player player, int amount) {
-        Score score = carriedObjective.getScore(player.getName());
-        score.setScore(score.getScore() + amount);
+    private void updateCarried(Player player) {
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            TeamInfo team = plugin.getTeam(player);
+            if (team == null) {
+                return;
+            }
+
+            // Create two sets that contain the materials to check the inventory for
+            Set<Material> teamMaterials = new HashSet<>();
+            Set<Byte> teamData = new HashSet<>();
+            for (TeamInfo t : plugin.getTeamMap().values()) {
+                teamMaterials.add(t.getBlockMaterial());
+                teamData.add(t.getBlockData());
+            }
+
+            int amount = 0;
+            for (ItemStack item : player.getInventory()) {
+                if (teamMaterials.contains(item.getType()) && teamData.contains(item.getData().getData())) {
+                    amount++;
+                }
+            }
+
+            if (plugin.useMultiLineApi()) {
+                if (MultiLineAPI.getLineCount(tagController, player) < 1) {
+                    MultiLineAPI.addLine(tagController, player);
+                }
+                MultiLineAPI.getLine(tagController, player, 0).setText("Trägt Wolle");
+            } else {
+                Score score = carriedObjective.getScore(player.getName());
+                score.setScore(amount);
+            }
+        });
     }
 
     @Override

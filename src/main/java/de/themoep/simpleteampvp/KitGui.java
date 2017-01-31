@@ -58,7 +58,7 @@ public class KitGui implements Listener {
     }
 
     public void generate() {
-        List<KitInfo> kits = new ArrayList<KitInfo>(plugin.getKitMap().values());
+        List<KitInfo> kits = new ArrayList<>(plugin.getKitMap().values());
         List<ItemStack> itemList = new ArrayList<ItemStack>();
         for(int i = 0; i < 9; i++) {
             itemList.add(null);
@@ -182,13 +182,11 @@ public class KitGui implements Listener {
     @EventHandler
     public void onInventoryClose(final InventoryCloseEvent event) {
         if(event.getPlayer() instanceof Player && invOpen.contains(event.getPlayer().getUniqueId())) {
-            plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
-                public void run() {
-                    if(invOpen.contains(event.getPlayer().getUniqueId())) {
-                        show((Player) event.getPlayer());
-                    }
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                if(invOpen.contains(event.getPlayer().getUniqueId())) {
+                    show((Player) event.getPlayer());
                 }
-            }, 1L);
+            });
         }
     }
 

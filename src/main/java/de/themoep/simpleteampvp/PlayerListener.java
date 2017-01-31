@@ -53,21 +53,19 @@ public class PlayerListener implements Listener {
         if(plugin.getGame() == null || plugin.getGame().getState() != GameState.RUNNING || plugin.getTeam(event.getPlayer()) == null) {
             final Player player = event.getPlayer();
             // We need to wait a tick after login...
-            plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
-                public void run() {
-                    player.teleport(plugin.getServer().getWorlds().get(0).getSpawnLocation());
-                    player.setBedSpawnLocation(player.getWorld().getSpawnLocation(), true);
-                    player.getInventory().clear();
-                    player.getInventory().setHelmet(null);
-                    player.getInventory().setChestplate(null);
-                    player.getInventory().setLeggings(null);
-                    player.getInventory().setBoots(null);
-                    player.setLevel(0);
-                    player.setExp(0);
-                    player.setHealth(20);
-                    player.updateInventory();
-                }
-            }, 1L);
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                player.teleport(plugin.getServer().getWorlds().get(0).getSpawnLocation());
+                player.setBedSpawnLocation(player.getWorld().getSpawnLocation(), true);
+                player.getInventory().clear();
+                player.getInventory().setHelmet(null);
+                player.getInventory().setChestplate(null);
+                player.getInventory().setLeggings(null);
+                player.getInventory().setBoots(null);
+                player.setLevel(0);
+                player.setExp(0);
+                player.setHealth(20);
+                player.updateInventory();
+            });
         }
     }
 

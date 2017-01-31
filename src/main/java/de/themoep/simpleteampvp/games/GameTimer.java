@@ -34,15 +34,13 @@ public class GameTimer {
     public boolean start() {
         if(time <= 0)
             return false;
-        taskId = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
-            public void run() {
-                time--;
-                if(time < 0)
-                    time = 0;
-                game.setTimerDisplay(time);
-                if(time == 0) {
-                    game.stop();
-                }
+        taskId = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
+            time--;
+            if(time < 0)
+                time = 0;
+            game.setTimerDisplay(time);
+            if(time == 0) {
+                game.stop();
             }
         }, 0L, 20L);
         return true;

@@ -5,6 +5,8 @@ import de.themoep.simpleteampvp.LocationInfo;
 import de.themoep.simpleteampvp.SimpleTeamPvP;
 import de.themoep.simpleteampvp.TeamInfo;
 import de.themoep.simpleteampvp.Utils;
+import net.blitzcube.mlapi.MultiLineAPI;
+import net.blitzcube.mlapi.tag.TagController;
 import net.md_5.bungee.api.ChatColor;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -89,6 +91,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     protected final SimpleTeamPvP plugin;
     private final String name;
+    protected TagController tagController;
     private GameState state;
     private GameTimer timer = null;
     private int regenId = -1;
@@ -300,6 +303,11 @@ public abstract class SimpleTeamPvPGame implements Listener {
             ItemMeta meta = pointItem.getItemMeta();
             meta.setDisplayName("Point Item");
             pointItem.setItemMeta(meta);
+        }
+
+        if (plugin.useMultiLineApi()) {
+            tagController = () -> 0;
+            MultiLineAPI.register(tagController);
         }
 
         state = GameState.INITIATED;
@@ -653,7 +661,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
         int maxScore = 0;
 
-        final List<TeamInfo> winTeams = new ArrayList<TeamInfo>();
+        final List<TeamInfo> winTeams = new ArrayList<>();
         for(TeamInfo team : plugin.getTeamMap().values()) {
             if(team.getScore() > maxScore) {
                 maxScore = team.getScore();
@@ -716,66 +724,62 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     + ChatColor.GREEN + "): " + ChatColor.WHITE + StringUtils.join(highestKillStreakPlayers, ", "));
         }
 
-        fwTask = plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable() {
-            public void run() {
-                for(TeamInfo team : winTeams) {
-                    Color color = Utils.convertColor(team.getColor());
-                    FireworkMeta fwm = null;
-                    if(team.getPoint() != null) {
-                        Firework fw = (Firework) team.getPoint().getLocation().getWorld().spawnEntity(team.getPoint().getLocation(), EntityType.FIREWORK);
-                        fwm = fw.getFireworkMeta();
-                        FireworkEffect effect = FireworkEffect.builder().flicker(true).withColor(color).with(FireworkEffect.Type.BALL).trail(true).build();
-                        fwm.addEffect(effect);
-                        fwm.setPower(0);
-                        fw.setFireworkMeta(fwm);
-                    }
-                    for(String entry : team.getScoreboardTeam().getEntries()) {
-                        Player player = plugin.getServer().getPlayer(entry);
-                        if(player != null && player.isOnline()) {
-                            Firework fw = (Firework) player.getWorld().spawnEntity(player.getLocation(), EntityType.FIREWORK);
-                            if(fwm == null) {
-                                fwm = fw.getFireworkMeta();
-                                FireworkEffect effect = FireworkEffect.builder().flicker(true).withColor(color).with(FireworkEffect.Type.BALL).trail(true).build();
-                                fwm.addEffect(effect);
-                                fwm.setPower(0);
-                            }
-                            fw.setFireworkMeta(fwm);
+        fwTask = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            for(TeamInfo team : winTeams) {
+                Color color = Utils.convertColor(team.getColor());
+                FireworkMeta fwm = null;
+                if(team.getPoint() != null) {
+                    Firework fw = (Firework) team.getPoint().getLocation().getWorld().spawnEntity(team.getPoint().getLocation(), EntityType.FIREWORK);
+                    fwm = fw.getFireworkMeta();
+                    FireworkEffect effect = FireworkEffect.builder().flicker(true).withColor(color).with(FireworkEffect.Type.BALL).trail(true).build();
+                    fwm.addEffect(effect);
+                    fwm.setPower(0);
+                    fw.setFireworkMeta(fwm);
+                }
+                for(String entry : team.getScoreboardTeam().getEntries()) {
+                    Player player = plugin.getServer().getPlayer(entry);
+                    if(player != null && player.isOnline()) {
+                        Firework fw = (Firework) player.getWorld().spawnEntity(player.getLocation(), EntityType.FIREWORK);
+                        if(fwm == null) {
+                            fwm = fw.getFireworkMeta();
+                            FireworkEffect effect = FireworkEffect.builder().flicker(true).withColor(color).with(FireworkEffect.Type.BALL).trail(true).build();
+                            fwm.addEffect(effect);
+                            fwm.setPower(0);
                         }
+                        fw.setFireworkMeta(fwm);
                     }
                 }
             }
         }, 0, 10);
 
-        teleportTask = plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
-            public void run() {
-                for(TeamInfo team : plugin.getTeamMap().values()) {
-                    for(String name : team.getScoreboardTeam().getEntries()) {
-                        Player player = plugin.getServer().getPlayer(name);
-                        if(player != null) {
-                            plugin.getKitGui().close(player);
-                            team.getScoreboardTeam().removeEntry(name);
-                            player.getInventory().clear();
-                            player.getInventory().setHelmet(null);
-                            player.getInventory().setChestplate(null);
-                            player.getInventory().setLeggings(null);
-                            player.getInventory().setBoots(null);
-                            player.setLevel(0);
-                            player.setExp(0);
-                            player.setHealth(player.getMaxHealth());
-                            player.updateInventory();
-                            player.teleport(plugin.getServer().getWorlds().get(0).getSpawnLocation());
-                            player.setBedSpawnLocation(plugin.getServer().getWorlds().get(0).getSpawnLocation(), true);
-                        }
+        teleportTask = plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            for(TeamInfo team : plugin.getTeamMap().values()) {
+                for(String name1 : team.getScoreboardTeam().getEntries()) {
+                    Player player = plugin.getServer().getPlayer(name1);
+                    if(player != null) {
+                        plugin.getKitGui().close(player);
+                        team.getScoreboardTeam().removeEntry(name1);
+                        player.getInventory().clear();
+                        player.getInventory().setHelmet(null);
+                        player.getInventory().setChestplate(null);
+                        player.getInventory().setLeggings(null);
+                        player.getInventory().setBoots(null);
+                        player.setLevel(0);
+                        player.setExp(0);
+                        player.setHealth(player.getMaxHealth());
+                        player.updateInventory();
+                        player.teleport(plugin.getServer().getWorlds().get(0).getSpawnLocation());
+                        player.setBedSpawnLocation(plugin.getServer().getWorlds().get(0).getSpawnLocation(), true);
                     }
                 }
-                plugin.getServer().broadcastMessage(ChatColor.GREEN + "Spieler zurück zum Spawn geportet!");
-
-                HandlerList.unregisterAll(plugin.getGame());
-
-                destroy();
-
-                state = GameState.DESTROYED;
             }
+            plugin.getServer().broadcastMessage(ChatColor.GREEN + "Spieler zurück zum Spawn geportet!");
+
+            HandlerList.unregisterAll(plugin.getGame());
+
+            destroy();
+
+            state = GameState.DESTROYED;
         }, 20 * 10);
     }
 
@@ -1241,22 +1245,20 @@ public abstract class SimpleTeamPvPGame implements Listener {
     public int regenPointBlocks() {
         final List<LocationInfo> fLocs = new ArrayList<LocationInfo>(pointBlockSet);
         pointBlockSet.clear();
-        regenId = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
-            public void run() {
-                if(fLocs.size() > 0) {
-                    Iterator<LocationInfo> locIt = fLocs.iterator();
-                    if(locIt.hasNext()) {
-                        Location loc = locIt.next().getLocation();
-                        Block block = loc.getBlock();
-                        if(block.getType() == Material.AIR)
-                            block.setType(pointBlock);
-                        locIt.remove();
-                        return;
-                    }
+        regenId = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
+            if(fLocs.size() > 0) {
+                Iterator<LocationInfo> locIt = fLocs.iterator();
+                if(locIt.hasNext()) {
+                    Location loc = locIt.next().getLocation();
+                    Block block = loc.getBlock();
+                    if(block.getType() == Material.AIR)
+                        block.setType(pointBlock);
+                    locIt.remove();
+                    return;
                 }
-                plugin.getServer().getScheduler().cancelTask(regenId);
-                regenId = -1;
             }
+            plugin.getServer().getScheduler().cancelTask(regenId);
+            regenId = -1;
         }, 1L, 1L);
         return fLocs.size();
     }
