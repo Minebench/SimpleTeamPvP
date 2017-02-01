@@ -31,6 +31,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
@@ -822,6 +823,13 @@ public abstract class SimpleTeamPvPGame implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOW)
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (state != GameState.RUNNING && event.getEntity() instanceof Player) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
     public void onDamageEntity(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player || event.getDamager() instanceof Projectile || event.getDamager() instanceof Firework)) {
             return;
@@ -831,7 +839,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             return;
         }
 
-        if (config.stopInteract || state != GameState.RUNNING) {
+        if (config.stopInteract) {
             if (event.getDamager() instanceof Player) {
                 event.setCancelled(!event.getDamager().hasPermission(SimpleTeamPvP.BYPASS_PERM));
             } else {
