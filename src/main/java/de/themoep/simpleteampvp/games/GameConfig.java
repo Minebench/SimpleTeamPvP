@@ -28,6 +28,9 @@ import java.util.Set;
  */
 
 public class GameConfig {
+
+    private final ConfigurationSection config;
+
     /* --- Settings --- */
     @GameConfigSetting(key = "use-kits")
     boolean useKits = false;
@@ -58,6 +61,9 @@ public class GameConfig {
 
     @GameConfigSetting(key = "stop-container-access")
     boolean stopContainerAccess = false;
+
+    @GameConfigSetting(key = "stop-armor-change")
+    boolean stopArmorChange = false;
 
     @GameConfigSetting(key = "kill-streak.name")
     boolean killStreakDisplayName = false;
@@ -91,8 +97,6 @@ public class GameConfig {
 
     @GameConfigSetting(key = "pointitemchest")
     LocationInfo pointItemChestLocation = null;
-    
-    private final ConfigurationSection config;
 
     public GameConfig(ConfigurationSection config) {
         this.config = config;

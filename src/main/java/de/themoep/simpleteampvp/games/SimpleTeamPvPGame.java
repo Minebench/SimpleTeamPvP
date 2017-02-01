@@ -904,7 +904,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if (event.getWhoClicked().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
-        if (isUsingKits() && event.getSlotType() == InventoryType.SlotType.ARMOR) {
+        if (config.stopArmorChange && event.getSlotType() == InventoryType.SlotType.ARMOR) {
             event.setCancelled(true);
         }
 
