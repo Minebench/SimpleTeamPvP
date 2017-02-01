@@ -142,7 +142,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 }
                 Object value, defValue = null;
                 try {
-                    value = defValue = field.get(this);
+                    value = defValue = field.get(config);
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                     continue;
@@ -208,7 +208,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     if (!(value instanceof Boolean) || !value.equals(defValue)) {
                         try {
                             plugin.getLogger().log(Level.INFO, configSetting.key().replace('-', ' ') + ": " + value);
-                            field.set(this, value);
+                            field.set(config, value);
                         } catch (IllegalArgumentException e) {
                             plugin.getLogger().log(Level.WARNING, "Can't set " + typeName + " " + field.getName() + " to " + value.getClass().getSimpleName() + " loaded from " + configSetting.key());
                         } catch (IllegalAccessException e) {
