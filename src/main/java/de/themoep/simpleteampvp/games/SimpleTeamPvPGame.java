@@ -91,7 +91,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     protected final SimpleTeamPvP plugin;
     private final String name;
-    private final GameConfig config;
+    protected final GameConfig config;
     protected TagController tagController;
     private GameState state = GameState.CREATED;
     private GameTimer timer = null;
