@@ -823,7 +823,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void onDamageEntity(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player || event.getDamager() instanceof Projectile)) {
+        if (!(event.getDamager() instanceof Player || event.getDamager() instanceof Projectile || event.getDamager() instanceof Firework)) {
             return;
         }
 
@@ -831,7 +831,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             return;
         }
 
-        if (config.stopInteract) {
+        if (config.stopInteract || state == GameState.RUNNING) {
             if (event.getDamager() instanceof Player) {
                 event.setCancelled(!event.getDamager().hasPermission(SimpleTeamPvP.BYPASS_PERM));
             } else {
