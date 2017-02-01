@@ -282,7 +282,7 @@ public class CtwGame extends SimpleTeamPvPGame {
     private void resetCarried(Player player) {
         if (plugin.useMultiLineApi()) {
             MultiLineAPI.clearLines(tagController, player);
-        } else {
+        } else if (carriedObjective != null) {
             carriedObjective.getScore(player.getName()).setScore(0);
         }
     }
@@ -314,7 +314,7 @@ public class CtwGame extends SimpleTeamPvPGame {
                     MultiLineAPI.addLine(tagController, player);
                 }
                 MultiLineAPI.getLine(tagController, player, 0).setText("Trägt Wolle");
-            } else {
+            } else if (carriedObjective != null) {
                 Score score = carriedObjective.getScore(player.getName());
                 score.setScore(amount);
             }
