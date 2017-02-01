@@ -831,7 +831,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             return;
         }
 
-        if (config.stopInteract || state == GameState.RUNNING) {
+        if (config.stopInteract || state != GameState.RUNNING) {
             if (event.getDamager() instanceof Player) {
                 event.setCancelled(!event.getDamager().hasPermission(SimpleTeamPvP.BYPASS_PERM));
             } else {
