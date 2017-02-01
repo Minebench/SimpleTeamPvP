@@ -12,6 +12,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPistonEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -203,7 +205,15 @@ public class CtwGame extends SimpleTeamPvPGame {
     }
 
     @EventHandler
-    public void onWoolPistonPush(BlockPistonEvent event) {
+    public void onWoolPistonPush(BlockPistonExtendEvent event) {
+        handlePistonEvent(event);
+    }
+    @EventHandler
+    public void onWoolPistonPush(BlockPistonRetractEvent event) {
+        handlePistonEvent(event);
+    }
+
+    private void handlePistonEvent(BlockPistonEvent event) {
         if (getState() != GameState.RUNNING) {
             return;
         }
