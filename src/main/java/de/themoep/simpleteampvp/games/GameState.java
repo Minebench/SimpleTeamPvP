@@ -17,6 +17,7 @@ package de.themoep.simpleteampvp.games;
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
 public enum GameState {
+    CREATED,
     INITIATED,
     JOINING,
     WAITING,

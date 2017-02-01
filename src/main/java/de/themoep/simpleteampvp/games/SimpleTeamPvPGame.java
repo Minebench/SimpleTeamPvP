@@ -91,8 +91,9 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     protected final SimpleTeamPvP plugin;
     private final String name;
+    private final GameConfig config;
     protected TagController tagController;
-    private GameState state;
+    private GameState state = GameState.CREATED;
     private GameTimer timer = null;
     private int regenId = -1;
     private BukkitTask teleportTask;
@@ -104,70 +105,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
     private int highestKillStreakScore = 0;
 
     private Objective playerKillsObjective = null;
-
-    /* --- Settings --- */
-    @GameConfigSetting(key = "use-kits")
-    private boolean useKits = false;
-
-    @GameConfigSetting(key = "show-score")
-    private boolean showScore = false;
-
-    @GameConfigSetting(key = "score-in-exp-bar")
-    private boolean showScoreExp = false;
-
-    @GameConfigSetting(key = "filter.break")
-    private boolean filterBreak = false;
-
-    @GameConfigSetting(key = "filter.place")
-    private boolean filterPlace = false;
-
-    @GameConfigSetting(key = "filter.drops")
-    private boolean filterDrops = false;
-
-    @GameConfigSetting(key = "filter.crafting")
-    private boolean filterCrafting = false;
-
-    @GameConfigSetting(key = "stop-build")
-    private boolean stopBuild = false;
-
-    @GameConfigSetting(key = "stop-interact")
-    private boolean stopInteract = false;
-
-    @GameConfigSetting(key = "stop-container-access")
-    private boolean stopContainerAccess = false;
-
-    @GameConfigSetting(key = "kill-streak.name")
-    private boolean killStreakDisplayName = false;
-
-    @GameConfigSetting(key = "kill-streak.tab")
-    private boolean killStreakDisplayTab = false;
-
-    @GameConfigSetting(key = "respawn-resistance")
-    private int respawnResistance = 5;
-
-    @GameConfigSetting(key = "objective-display")
-    private String objectiveDisplay = "Points (%winscore%)";
-
-    @GameConfigSetting(key = "pointitem")
-    private ItemStack pointItem = null;
-
-    @GameConfigSetting(key = "filter.whitelist")
-    private Set<String> itemWhitelist = new HashSet<>();
-
-    @GameConfigSetting(key = "death-drops")
-    private List<ItemStack> deathDrops = new ArrayList<>();
-
-    @GameConfigSetting(key = "winscore")
-    private int winScore = -1;
-
-    @GameConfigSetting(key = "duration")
-    private int duration = -1;
-
-    @GameConfigSetting(key = "pointBlock")
-    private Material pointBlock = Material.AIR;
-
-    @GameConfigSetting(key = "pointitemchest")
-    private LocationInfo pointItemChestLocation = null;
 
     private Set<LocationInfo> pointBlockSet = new HashSet<LocationInfo>();
 
@@ -181,10 +118,20 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if (game == null) {
             game = plugin.getConfig().createSection("game." + getName());
         }
+        config = new GameConfig(game);
+        loadConfig();
 
-        for (Field field : FieldUtils.getAllFields(getClass())) {
+        if (plugin.useMultiLineApi()) {
+            tagController = () -> 0;
+            MultiLineAPI.register(tagController);
+        }
+    }
+
+
+    public void loadConfig() {
+        for (Field field : FieldUtils.getAllFields(config.getClass())) {
             if (field.isAnnotationPresent(GameConfigSetting.class)) {
-                GameConfigSetting config = field.getAnnotation(GameConfigSetting.class);
+                GameConfigSetting configSetting = field.getAnnotation(GameConfigSetting.class);
                 Type type = field.getGenericType();
                 String typeName = field.getType().getSimpleName();
                 if (type instanceof ParameterizedType) {
@@ -203,7 +150,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
                 switch (typeName) {
                     case "LocationInfo":
-                        ConfigurationSection locSec = game.getConfigurationSection(config.key());
+                        ConfigurationSection locSec = config.getConfig().getConfigurationSection(configSetting.key());
                         if(locSec != null) {
                             value = new LocationInfo(locSec);
                         }
@@ -211,7 +158,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     case "Collection<ItemStack>":
                     case "List<ItemStack>":
                     case "Set<ItemStack>":
-                        for (String string : game.getStringList(config.key())) {
+                        for (String string : config.getConfig().getStringList(configSetting.key())) {
                             try {
                                 int amount = 1;
                                 String[] partsA = string.split(" ");
@@ -235,47 +182,47 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     case "Collection<String>":
                     case "List<String>":
                     case "Set<String>":
-                        for (String string : game.getStringList(config.key())) {
+                        for (String string : config.getConfig().getStringList(configSetting.key())) {
                             plugin.getLogger().log(Level.INFO, "Adding " + string);
                             ((Collection<String>) value).add(string);
                         }
                         break;
                     case "ItemStack":
-                        value = game.getItemStack(config.key(), (ItemStack) value);
+                        value = config.getConfig().getItemStack(configSetting.key(), (ItemStack) value);
                         break;
                     case "Material":
                         try {
-                            value = Material.matchMaterial(game.getString(config.key(), value.toString()));
+                            value = Material.matchMaterial(config.getConfig().getString(configSetting.key(), value.toString()));
                         } catch (IllegalArgumentException e) {
-                            pointBlock = Material.AIR;
-                            plugin.getLogger().log(Level.WARNING, game.getString(config.key(), "null") + " is not a valid Material name!");
+                            config.pointBlock = Material.AIR;
+                            plugin.getLogger().log(Level.WARNING, config.getConfig().getString(configSetting.key(), "null") + " is not a valid Material name!");
                         }
                         break;
                     case "String":
-                        value = ChatColor.translateAlternateColorCodes('&', game.getString(config.key(), (String) value));
+                        value = ChatColor.translateAlternateColorCodes('&', config.getConfig().getString(configSetting.key(), (String) value));
                         break;
                     default:
-                         value = game.get(config.key(), value);
+                        value = config.getConfig().get(configSetting.key(), value);
                 }
                 if (value != null) {
                     if (!(value instanceof Boolean) || !value.equals(defValue)) {
                         try {
-                            plugin.getLogger().log(Level.INFO, config.key().replace('-', ' ') + ": " + value);
+                            plugin.getLogger().log(Level.INFO, configSetting.key().replace('-', ' ') + ": " + value);
                             field.set(this, value);
                         } catch (IllegalArgumentException e) {
-                            plugin.getLogger().log(Level.WARNING, "Can't set " + typeName + " " + field.getName() + " to " + value.getClass().getSimpleName() + " loaded from " + config.key());
+                            plugin.getLogger().log(Level.WARNING, "Can't set " + typeName + " " + field.getName() + " to " + value.getClass().getSimpleName() + " loaded from " + configSetting.key());
                         } catch (IllegalAccessException e) {
                             e.printStackTrace();
                         }
                     }
                 } else {
-                    plugin.getLogger().log(Level.WARNING, config.key() + "'s value is null?");
+                    plugin.getLogger().log(Level.WARNING, configSetting.key() + "'s value is null?");
                 }
             }
         }
 
-        if(pointItemChestLocation != null) {
-            Location loc = pointItemChestLocation.getLocation();
+        if(config.pointItemChestLocation != null) {
+            Location loc = config.pointItemChestLocation.getLocation();
             if (loc != null) {
                 Block block = loc.getBlock();
                 if (block.getState() instanceof Chest) {
@@ -288,26 +235,21 @@ public abstract class SimpleTeamPvPGame implements Listener {
                         }
                     }
                     if (item != null) {
-                        pointItem = item;
-                        plugin.getLogger().log(Level.INFO, "Point item is " + pointItem.getType());
+                        config.pointItem = item;
+                        plugin.getLogger().log(Level.INFO, "Point item is " + config.pointItem.getType());
                     }
                 }
             } else {
-                plugin.getLogger().log(Level.WARNING, "Could not get location for LocationInfo " + pointItemChestLocation + ". Maybe the world doesn't exist anymore?");
+                plugin.getLogger().log(Level.WARNING, "Could not get location for LocationInfo " + config.pointItemChestLocation + ". Maybe the world doesn't exist anymore?");
             }
         }
 
-        if(pointItem == null) {
+        if(config.pointItem == null) {
             plugin.getLogger().log(Level.WARNING, "No point item configured!");
-            pointItem = new ItemStack(pointBlock != Material.AIR ? pointBlock : Material.SLIME_BALL, 1);
-            ItemMeta meta = pointItem.getItemMeta();
+            config.pointItem = new ItemStack(config.pointBlock != Material.AIR ? config.pointBlock : Material.SLIME_BALL, 1);
+            ItemMeta meta = config.pointItem.getItemMeta();
             meta.setDisplayName("Point Item");
-            pointItem.setItemMeta(meta);
-        }
-
-        if (plugin.useMultiLineApi()) {
-            tagController = () -> 0;
-            MultiLineAPI.register(tagController);
+            config.pointItem.setItemMeta(meta);
         }
 
         state = GameState.INITIATED;
@@ -552,7 +494,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             }
         }
         pointObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().registerNewObjective("teamPoints", "dummy");
-        setObjectiveDisplay(objectiveDisplay);
+        setObjectiveDisplay(config.objectiveDisplay);
 
         playerKillsObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().getObjective("playerKills");
         if(playerKillsObjective != null) {
@@ -564,7 +506,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         }
         playerKillsObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().registerNewObjective("playerKills", "playerKillCount");
 
-        if (killStreakDisplayTab) {
+        if (config.killStreakDisplayTab) {
             killStreakObjectiveTab = plugin.getServer().getScoreboardManager().getMainScoreboard().getObjective("killStreakTab");
             if(killStreakObjectiveTab != null) {
                 try {
@@ -577,7 +519,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             killStreakObjectiveTab.setDisplaySlot(DisplaySlot.PLAYER_LIST);
         }
 
-        if (killStreakDisplayName) {
+        if (config.killStreakDisplayName) {
             killStreakObjectiveName = plugin.getServer().getScoreboardManager().getMainScoreboard().getObjective("killStreakName");
             if(killStreakObjectiveName != null) {
                 try {
@@ -614,7 +556,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     player.setExp(0);
                     player.setHealth(player.getMaxHealth());
                     player.updateInventory();
-                    if(useKits) {
+                    if(config.useKits) {
                         if (plugin.getKitMap().size() > 1) {
                             plugin.getKitGui().show(player);
                         } else {
@@ -628,12 +570,12 @@ public abstract class SimpleTeamPvPGame implements Listener {
             pointObjective.getScore(team.getColor() + team.getName()).setScore(0);
         }
         state = GameState.RUNNING;
-        if(showScore) {
+        if(config.showScore) {
             pointObjective.setDisplaySlot(DisplaySlot.SIDEBAR);
         }
         plugin.getServer().broadcastMessage(ChatColor.GREEN + "Spiel gestartet!");
 
-        if(duration > 0) {
+        if(config.duration > 0) {
             timer = new GameTimer(this);
             timer.start();
         }
@@ -670,7 +612,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             if(team.getScore() >= maxScore) {
                 winTeams.add(team);
             }
-            plugin.getServer().broadcastMessage(ChatColor.GREEN + "Team " + team.getScoreboardTeam().getPrefix() + team.getScoreboardTeam().getDisplayName() + team.getScoreboardTeam().getSuffix() + ChatColor.GREEN + (winScore > 0 ? " - Score: " + ChatColor.RED + team.getScore() : ":"));
+            plugin.getServer().broadcastMessage(ChatColor.GREEN + "Team " + team.getScoreboardTeam().getPrefix() + team.getScoreboardTeam().getDisplayName() + team.getScoreboardTeam().getSuffix() + ChatColor.GREEN + (config.winScore > 0 ? " - Score: " + ChatColor.RED + team.getScore() : ":"));
             showPlayerList(team);
 
             for (String entry : team.getScoreboardTeam().getEntries()) {
@@ -827,7 +769,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
      * @param use
      */
     protected void useKits(boolean use) {
-        useKits = use;
+        config.useKits = use;
     }
 
     /**
@@ -835,7 +777,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
      * @return Whether or not this game uses kits
      */
     protected boolean isUsingKits() {
-        return useKits;
+        return config.useKits;
     }
 
     @EventHandler(priority = EventPriority.LOW)
@@ -843,11 +785,11 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
-        if (stopBuild) {
+        if (config.stopBuild) {
             event.setCancelled(true);
         }
 
-        if(!event.isCancelled() && filterDrops) {
+        if(!event.isCancelled() && config.filterDrops) {
             List<ItemStack> drops = event.getBlock().getDrops().stream().filter(this::isWhitelisted).collect(Collectors.toList());
             if (drops.size() != event.getBlock().getDrops().size()) {
                 event.setCancelled(true);
@@ -864,7 +806,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
-        if (stopBuild || filterBreak && !isWhitelisted(event.getBlock())) {
+        if (config.stopBuild || config.filterBreak && !isWhitelisted(event.getBlock())) {
             event.setCancelled(true);
         }
     }
@@ -874,7 +816,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
-        if (stopBuild || filterPlace && !isWhitelisted(event.getBlock())) {
+        if (config.stopBuild || config.filterPlace && !isWhitelisted(event.getBlock())) {
             event.setCancelled(true);
         }
     }
@@ -889,7 +831,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             return;
         }
 
-        if (stopInteract) {
+        if (config.stopInteract) {
             if (event.getDamager() instanceof Player) {
                 event.setCancelled(!event.getDamager().hasPermission(SimpleTeamPvP.BYPASS_PERM));
             } else {
@@ -903,7 +845,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(event.getRemover().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
-        if (stopInteract || stopBuild) {
+        if (config.stopInteract || config.stopBuild) {
             event.setCancelled(true);
         }
     }
@@ -913,7 +855,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
-        if (stopInteract) {
+        if (config.stopInteract) {
             event.setCancelled(true);
         }
     }
@@ -931,9 +873,9 @@ public abstract class SimpleTeamPvPGame implements Listener {
             return;
 
         if(event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            if (stopInteract && event.getClickedBlock().getType() == Material.BED_BLOCK) {
+            if (config.stopInteract && event.getClickedBlock().getType() == Material.BED_BLOCK) {
                 event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM));
-            } else if (stopContainerAccess && event.getClickedBlock().getState() instanceof InventoryHolder) {
+            } else if (config.stopContainerAccess && event.getClickedBlock().getState() instanceof InventoryHolder) {
                 event.setCancelled(event.isCancelled() || !event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM));
             }
         }
@@ -944,7 +886,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
-        if(filterDrops && !isWhitelisted(event.getItemDrop().getItemStack())) {
+        if(config.filterDrops && !isWhitelisted(event.getItemDrop().getItemStack())) {
             event.setCancelled(true);
         }
     }
@@ -959,7 +901,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         }
 
         if (event.getClickedInventory() != event.getWhoClicked().getInventory() || event.getAction() == InventoryAction.COLLECT_TO_CURSOR || event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
-            if (filterDrops && !(isWhitelisted(event.getCurrentItem()) && isWhitelisted(event.getCursor()))) {
+            if (config.filterDrops && !(isWhitelisted(event.getCurrentItem()) && isWhitelisted(event.getCursor()))) {
                 event.setCancelled(true);
             }
         }
@@ -970,7 +912,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(event.getWhoClicked().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
-        if(filterCrafting && !isWhitelisted(event.getRecipe().getResult())) {
+        if(config.filterCrafting && !isWhitelisted(event.getRecipe().getResult())) {
             event.setCancelled(true);
         }
     }
@@ -997,12 +939,12 @@ public abstract class SimpleTeamPvPGame implements Listener {
             }
         }
 
-        if(!event.getKeepLevel() && showScoreExp) {
+        if(!event.getKeepLevel() && config.showScoreExp) {
             event.setDroppedExp(0);
             event.setKeepLevel(true);
         }
 
-        if (filterDrops) {
+        if (config.filterDrops) {
             if (event.getKeepInventory()) {
                 for (int i = 0; i < player.getInventory().getSize(); i++) {
                     ItemStack item = player.getInventory().getItem(i);
@@ -1041,18 +983,18 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     }
                 }, 1L);
             }
-            if(showScoreExp) {
+            if(config.showScoreExp) {
                 event.getPlayer().setLevel(team.getScore());
             }
-            if (respawnResistance > 0) {
-                event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, respawnResistance * 20, 5, true));
+            if (config.respawnResistance > 0) {
+                event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, config.respawnResistance * 20, 5, true));
             }
 
             calculateHighestKillStreak(event.getPlayer());
-            if (killStreakDisplayName && killStreakObjectiveName != null) {
+            if (config.killStreakDisplayName && killStreakObjectiveName != null) {
                 killStreakObjectiveName.getScore(event.getPlayer().getName()).setScore(0);
             }
-            if (killStreakDisplayTab && killStreakObjectiveTab != null) {
+            if (config.killStreakDisplayTab && killStreakObjectiveTab != null) {
                 killStreakObjectiveTab.getScore(event.getPlayer().getName()).setScore(0);
             }
         }
@@ -1088,7 +1030,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     private int setScore(TeamInfo team, int i) {
         team.setScore(i);
-        if(showScoreExp) {
+        if(config.showScoreExp) {
             for(String entry : team.getScoreboardTeam().getEntries()) {
                 Player player = plugin.getServer().getPlayer(entry);
                 if(player != null && player.isOnline()) {
@@ -1099,7 +1041,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         Score score = pointObjective.getScore(team.getColor() + team.getName());
         score.setScore(i);
 
-        if(winScore > 0 && team.getScore() >= winScore) {
+        if(config.winScore > 0 && team.getScore() >= config.winScore) {
             stop();
         }
 
@@ -1107,23 +1049,23 @@ public abstract class SimpleTeamPvPGame implements Listener {
     }
 
     public void showScore(boolean showScore) {
-        this.showScore = showScore;
+        config.showScore = showScore;
     }
 
     public void showScoreExp(boolean showScoreExp) {
-        this.showScoreExp = showScoreExp;
+        config.showScoreExp = showScoreExp;
     }
 
     public ItemStack getPointItem() {
-        return pointItem;
+        return config.pointItem;
     }
 
     public void setPointItem(ItemStack pointItem) {
-        this.pointItem = pointItem;
+        config.pointItem = pointItem;
     }
 
     public Set<String> getItemWhitelist() {
-        return itemWhitelist;
+        return config.itemWhitelist;
     }
 
     public boolean isWhitelisted(ItemStack item) {
@@ -1139,7 +1081,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
     }
 
     public List<ItemStack> getDeathDrops() {
-        return deathDrops;
+        return config.deathDrops;
     }
 
     public List<ItemStack> getDeathDrops(TeamInfo team, Player player) {
@@ -1180,11 +1122,11 @@ public abstract class SimpleTeamPvPGame implements Listener {
     }
 
     public int getDuration() {
-        return duration;
+        return config.duration;
     }
 
     public void setDuration(int duration) {
-        this.duration = duration;
+        config.duration = duration;
         if(timer != null) {
             timer.setTime(duration * 60);
         } else if(duration > 0 && state == GameState.RUNNING) {
@@ -1194,26 +1136,26 @@ public abstract class SimpleTeamPvPGame implements Listener {
     }
 
     public int getWinScore() {
-        return winScore;
+        return config.winScore;
     }
 
     public void setWinScore(int score) {
-        this.winScore = score;
+        config.winScore = score;
     }
 
     public int getRespawnResistance() {
-        return respawnResistance;
+        return config.respawnResistance;
     }
 
     public void setObjectiveDisplay(String format) {
-        this.objectiveDisplay = format;
-        setTimerDisplay(duration);
+        config.objectiveDisplay = format;
+        setTimerDisplay(config.duration);
     }
 
     public void setTimerDisplay(int seconds) {
         pointObjective.setDisplayName(
-                objectiveDisplay
-                .replace("%winscore%", winScore > 0 ? Integer.toString(winScore) : "")
+                config.objectiveDisplay
+                .replace("%winscore%", config.winScore > 0 ? Integer.toString(config.winScore) : "")
                 .replace("%time%", seconds >= 0 ? Utils.formatTime(seconds, TimeUnit.SECONDS) : "")
         );
     }
@@ -1223,11 +1165,11 @@ public abstract class SimpleTeamPvPGame implements Listener {
     }
 
     public void setPointBlock(Material pointBlock) {
-        this.pointBlock = pointBlock;
+        config.pointBlock = pointBlock;
     }
 
     public Material getPointBlock() {
-        return pointBlock;
+        return config.pointBlock;
     }
 
     public Set<LocationInfo> getPointBlockSet() {
@@ -1252,7 +1194,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     Location loc = locIt.next().getLocation();
                     Block block = loc.getBlock();
                     if(block.getType() == Material.AIR)
-                        block.setType(pointBlock);
+                        block.setType(config.pointBlock);
                     locIt.remove();
                     return;
                 }
@@ -1269,9 +1211,9 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     private void calculateHighestKillStreak(String name) {
         Objective killStreakObjective = null;
-        if (killStreakDisplayName && killStreakObjectiveName != null) {
+        if (config.killStreakDisplayName && killStreakObjectiveName != null) {
             killStreakObjective = killStreakObjectiveName;
-        } else if (killStreakDisplayTab && killStreakObjectiveTab != null) {
+        } else if (config.killStreakDisplayTab && killStreakObjectiveTab != null) {
             killStreakObjective = killStreakObjectiveTab;
         }
         if (killStreakObjective != null) {
@@ -1287,6 +1229,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
     }
 
     public String toString() {
-        return "Game{key=" + name + ",state=" + state + ",winScore=" + winScore + ",duration=" + duration + ",useKits=" + useKits + ",showScore=" + showScore + ",showScoreExp=" + showScoreExp + ",pointBlock=" + pointBlock + ",pointItem=" + pointItem + "}";
+        return "Game{key=" + name + ",state=" + state + ",winScore=" + config.winScore + ",duration=" + config.duration + ",useKits=" + config.useKits + ",showScore=" + config.showScore + ",showScoreExp=" + config.showScoreExp + ",pointBlock=" + config.pointBlock + ",pointItem=" + config.pointItem + "}";
     }
 }
