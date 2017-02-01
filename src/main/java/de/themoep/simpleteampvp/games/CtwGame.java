@@ -305,7 +305,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             int amount = 0;
             for (ItemStack item : player.getInventory()) {
                 if (item != null && teamMaterials.contains(item.getType()) && teamData.contains(item.getData().getData())) {
-                    amount++;
+                    amount += item.getAmount();
                 }
             }
 
