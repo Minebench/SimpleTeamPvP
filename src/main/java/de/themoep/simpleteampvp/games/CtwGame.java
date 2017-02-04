@@ -154,7 +154,9 @@ public class CtwGame extends SimpleTeamPvPGame {
 
         for (TeamInfo t : plugin.getTeamMap().values()) {
             if (t.regionContains(event.getBlock().getLocation())) {
-                decrementScore(t);
+                if (woolTeam != t) {
+                    decrementScore(t);
+                }
                 if (!t.equals(team) && !t.equals(woolTeam)) {
                     plugin.broadcast(t, ChatColor.DARK_RED + "ACHTUNG: "
                             + ChatColor.YELLOW + event.getPlayer().getDisplayName()
