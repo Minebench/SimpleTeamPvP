@@ -108,6 +108,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
     private Objective playerKillsObjective = null;
 
     private Set<LocationInfo> pointBlockSet = new HashSet<LocationInfo>();
+    private Map<String, Integer> teamScores = new HashMap<>();
 
     public SimpleTeamPvPGame(SimpleTeamPvP plugin, String name) {
         this.plugin = plugin;
@@ -606,14 +607,15 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
         final List<TeamInfo> winTeams = new ArrayList<>();
         for(TeamInfo team : plugin.getTeamMap().values()) {
-            if(team.getScore() > maxScore) {
-                maxScore = team.getScore();
+            int teamScore = getScore(team);
+            if(teamScore > maxScore) {
+                maxScore = teamScore;
                 winTeams.clear();
             }
-            if(team.getScore() >= maxScore) {
+            if(teamScore >= maxScore) {
                 winTeams.add(team);
             }
-            plugin.getServer().broadcastMessage(ChatColor.GREEN + "Team " + team.getScoreboardTeam().getPrefix() + team.getScoreboardTeam().getDisplayName() + team.getScoreboardTeam().getSuffix() + ChatColor.GREEN + (config.winScore > 0 ? " - Score: " + ChatColor.RED + team.getScore() : ":"));
+            plugin.getServer().broadcastMessage(ChatColor.GREEN + "Team " + team.getScoreboardTeam().getPrefix() + team.getScoreboardTeam().getDisplayName() + team.getScoreboardTeam().getSuffix() + ChatColor.GREEN + (config.winScore > 0 ? " - Score: " + ChatColor.RED + teamScore : ":"));
             showPlayerList(team);
 
             for (String entry : team.getScoreboardTeam().getEntries()) {
@@ -992,7 +994,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 }, 1L);
             }
             if(config.showScoreExp) {
-                event.getPlayer().setLevel(team.getScore());
+                event.getPlayer().setLevel(getScore(team));
             }
             if (config.respawnResistance > 0) {
                 event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, config.respawnResistance * 20, 5, true));
@@ -1020,24 +1022,32 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     public abstract SimpleTeamPvPGame clone();
 
+    private int getScore(TeamInfo team) {
+        if (teamScores.containsKey(team.getName())) {
+            return teamScores.get(team.getName());
+        }
+        return 0;
+    }
+
     public int incrementScore(TeamInfo team) {
         return incrementScore(team, 1);
     }
 
     public int incrementScore(TeamInfo team, int i) {
-        return setScore(team, team.getScore() + i);
+        return setScore(team, getScore(team) + i);
     }
+
 
     public int decrementScore(TeamInfo team) {
         return decrementScore(team, 1);
     }
 
     public int decrementScore(TeamInfo team, int i) {
-        return setScore(team, team.getScore() - i);
+        return setScore(team, getScore(team) - i);
     }
 
     private int setScore(TeamInfo team, int i) {
-        team.setScore(i);
+        teamScores.put(team.getName(), i);
         if(config.showScoreExp) {
             for(String entry : team.getScoreboardTeam().getEntries()) {
                 Player player = plugin.getServer().getPlayer(entry);
@@ -1049,11 +1059,11 @@ public abstract class SimpleTeamPvPGame implements Listener {
         Score score = pointObjective.getScore(team.getColor() + team.getName());
         score.setScore(i);
 
-        if(config.winScore > 0 && team.getScore() >= config.winScore) {
+        if(config.winScore > 0 && i >= config.winScore) {
             stop();
         }
 
-        return team.getScore();
+        return i;
     }
 
     public void showScore(boolean showScore) {

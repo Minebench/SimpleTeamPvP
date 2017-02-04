@@ -43,7 +43,6 @@ public class TeamInfo {
     private LocationInfo point = null;
     private LocationInfo pos1 = null;
     private LocationInfo pos2 = null;
-    private int score = 0;
 
     /**
      * Create a new TeamInfo object
@@ -172,21 +171,6 @@ public class TeamInfo {
 
     public int getSize() {
         return scoreboardTeam.getSize();
-    }
-
-    public int getScore() {
-        return score;
-    }
-
-    /**
-     * Set the score of this team
-     * @param score The value to set the score to
-     * @return The old score
-     */
-    public int setScore(int score) {
-        int oldScore = this.score;
-        this.score = score;
-        return oldScore;
     }
 
     public boolean setColor(String colorStr) {
