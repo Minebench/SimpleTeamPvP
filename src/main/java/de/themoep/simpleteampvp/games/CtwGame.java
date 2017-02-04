@@ -8,6 +8,7 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
@@ -17,6 +18,7 @@ import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
@@ -225,6 +227,13 @@ public class CtwGame extends SimpleTeamPvPGame {
                 event.setCancelled(true);
                 break;
             }
+        }
+    }
+
+    @EventHandler
+    public void onWoolDye(CraftItemEvent event) {
+        if (plugin.getTeam(event.getRecipe().getResult()) != null) {
+            event.setResult(Event.Result.DENY);
         }
     }
 
