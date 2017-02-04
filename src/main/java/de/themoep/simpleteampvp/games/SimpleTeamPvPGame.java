@@ -716,6 +716,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                         player.teleport(plugin.getServer().getWorlds().get(0).getSpawnLocation());
                         player.setBedSpawnLocation(plugin.getServer().getWorlds().get(0).getSpawnLocation(), true);
                     }
+                    team.getScoreboardTeam().removeEntry(name1);
                 }
             }
             plugin.getServer().broadcastMessage(ChatColor.GREEN + "Spieler zurück zum Spawn geportet!");
