@@ -118,7 +118,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             artificialWool.add(event.getBlock().getLocation().hashCode());
         }
 
-        if (team.regionContains(event.getBlock().getLocation())) {
+        if (team != woolTeam && team.regionContains(event.getBlock().getLocation())) {
             incrementScore(team);
             event.getPlayer().sendMessage(ChatColor.YELLOW + "Du hast einen Wolleblock für dein Team hinzugefügt!");
         }
