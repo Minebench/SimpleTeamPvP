@@ -17,10 +17,11 @@ import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -250,19 +251,46 @@ public class CtwGame extends SimpleTeamPvPGame {
 
         updateCarried(event.getPlayer());
     }
-
+    
     @EventHandler
-    public void onWoolBlockPickup(PlayerPickupItemEvent event) {
-        if (getState() != GameState.RUNNING) {
+    public void onWoolBlockPickup(EntityPickupItemEvent event) {
+        if (getState() != GameState.RUNNING || !(event.getEntity() instanceof Player)) {
             return;
         }
-
+        
         TeamInfo woolTeam = plugin.getTeam(event.getItem().getItemStack());
         if (woolTeam == null) {
             return;
         }
-
-        updateCarried(event.getPlayer());
+        
+        updateCarried((Player) event.getEntity());
+    }
+    
+    @EventHandler
+    public void onWoolBlockPrepareCraft(PrepareItemCraftEvent event) {
+        if (getState() != GameState.RUNNING || event.getInventory().getResult() == null) {
+            return;
+        }
+        
+        TeamInfo woolTeam = plugin.getTeam(event.getInventory().getResult());
+        if (woolTeam == null) {
+            return;
+        }
+        event.getInventory().setResult(null);
+    }
+    
+    @EventHandler(ignoreCancelled = true)
+    public void onWoolBlockCraft(CraftItemEvent event) {
+        if (getState() != GameState.RUNNING || event.getCurrentItem() == null) {
+            return;
+        }
+        
+        TeamInfo woolTeam = plugin.getTeam(event.getCurrentItem());
+        if (woolTeam == null) {
+            return;
+        }
+        event.setCancelled(true);
+        event.setCurrentItem(null);
     }
 
     @EventHandler
