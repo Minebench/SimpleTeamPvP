@@ -1,7 +1,6 @@
 package de.themoep.simpleteampvp;
 
 import net.md_5.bungee.api.ChatColor;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -15,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 /**
  * SimpleTeamPvP
@@ -190,7 +190,7 @@ public class TeamInfo {
             for(ChatColor color : ChatColor.values()) {
                 colorList.add(color.getName());
             }
-            Bukkit.getLogger().log(Level.WARNING, "[SimpleTeamPvP] " + colorStr + " is not a valid color name! (Available are " + StringUtils.join(colorList, ", ") + ")");
+            Bukkit.getLogger().log(Level.WARNING, "[SimpleTeamPvP] " + colorStr + " is not a valid color name! (Available are " + colorList.stream().collect(Collectors.joining(", ")) + ")");
             return false;
         }
         scoreboardTeam.setPrefix("" + color);

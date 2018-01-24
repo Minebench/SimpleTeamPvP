@@ -8,7 +8,6 @@ import de.themoep.simpleteampvp.Utils;
 import net.blitzcube.mlapi.MultiLineAPI;
 import net.blitzcube.mlapi.tag.TagController;
 import net.md_5.bungee.api.ChatColor;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
@@ -637,7 +636,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if(winTeamNames.size() == 1) {
             plugin.getServer().broadcastMessage(ChatColor.GREEN + "Team " + winTeamNames.get(0) + ChatColor.GREEN + " hat das Spiel mit " + ChatColor.YELLOW + (maxScore == 1 ? "einem Punkt" : maxScore + " Punkten") + ChatColor.GREEN + " gewonnen!");
         } else if(winTeamNames.size() > 1){
-            plugin.getServer().broadcastMessage(ChatColor.GREEN + "Teams " + StringUtils.join(winTeamNames, ChatColor.GREEN + ", ") + ChatColor.GREEN + " haben das Spiel mit " + ChatColor.YELLOW + (maxScore == 1 ? "einem Punkt" : maxScore + " Punkten") + ChatColor.GREEN + " gewonnen!");
+            plugin.getServer().broadcastMessage(ChatColor.GREEN + "Teams " + winTeamNames.stream().collect(Collectors.joining(ChatColor.GREEN + ", ")) + ChatColor.GREEN + " haben das Spiel mit " + ChatColor.YELLOW + (maxScore == 1 ? "einem Punkt" : maxScore + " Punkten") + ChatColor.GREEN + " gewonnen!");
         } else {
             plugin.getServer().broadcastMessage(ChatColor.GREEN + "Kein Team hat das Spiel gewonnen!");
         }
@@ -659,14 +658,14 @@ public abstract class SimpleTeamPvPGame implements Listener {
             if (amount > 0 && killScoreWinners.size() > 0) {
                 plugin.getServer().broadcastMessage(ChatColor.GREEN + "Meiste Kills ("
                         + ChatColor.YELLOW + amount
-                        + ChatColor.GREEN + "): " + StringUtils.join(killScoreWinners, ", "));
+                        + ChatColor.GREEN + "): " + killScoreWinners.stream().collect(Collectors.joining(", ")));
             }
         }
 
         if (highestKillStreakScore > 0) {
             plugin.getServer().broadcastMessage(ChatColor.GREEN + "Höchste Killstreak ("
                     + ChatColor.YELLOW + highestKillStreakScore
-                    + ChatColor.GREEN + "): " + ChatColor.WHITE + StringUtils.join(highestKillStreakPlayers, ", "));
+                    + ChatColor.GREEN + "): " + ChatColor.WHITE + highestKillStreakPlayers.stream().collect(Collectors.joining(", ")));
         }
 
         fwTask = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
@@ -737,7 +736,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 teamPlayers.add(plugin.addServerTag(name));
             }
         }
-        plugin.getServer().broadcastMessage(ChatColor.WHITE + StringUtils.join(teamPlayers, ", "));
+        plugin.getServer().broadcastMessage(ChatColor.WHITE + teamPlayers.stream().collect(Collectors.joining(", ")));
     }
 
 

@@ -5,7 +5,6 @@ import de.themoep.simpleteampvp.LocationInfo;
 import de.themoep.simpleteampvp.SimpleTeamPvP;
 import de.themoep.simpleteampvp.TeamInfo;
 import net.md_5.bungee.api.ChatColor;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
@@ -14,6 +13,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Copyright 2016 Max Lee (https://github.com/Phoenix616/)
@@ -142,7 +142,7 @@ public class TeamSubCommand extends SubCommand {
                         for(ChatColor color : ChatColor.values()) {
                             colorList.add(color.getName());
                         }
-                        sender.sendMessage(ChatColor.YELLOW + args[2].toUpperCase() + ChatColor.RED + " is not valid color string! (Colors: " + StringUtils.join(colorList, ", ") + ")");
+                        sender.sendMessage(ChatColor.YELLOW + args[2].toUpperCase() + ChatColor.RED + " is not valid color string! (Colors: " + colorList.stream().collect(Collectors.joining(", ")) + ")");
                     }
                 } else {
                     sender.sendMessage(ChatColor.RED + "No team with the name " + ChatColor.WHITE + args[1] + ChatColor.RED + " found!");
