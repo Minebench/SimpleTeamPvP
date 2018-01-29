@@ -6,6 +6,7 @@ import de.themoep.simpleteampvp.RegionInfo;
 import de.themoep.simpleteampvp.SimpleTeamPvP;
 import de.themoep.simpleteampvp.TeamInfo;
 import de.themoep.simpleteampvp.Utils;
+import lombok.Getter;
 import net.blitzcube.mlapi.MultiLineAPI;
 import net.blitzcube.mlapi.tag.TagController;
 import net.md_5.bungee.api.ChatColor;
@@ -91,8 +92,10 @@ import java.util.stream.Collectors;
 public abstract class SimpleTeamPvPGame implements Listener {
     
     protected final SimpleTeamPvP plugin;
+    @Getter
     private final String name;
-    protected final GameConfig config;
+    @Getter
+    private final GameConfig config;
     protected TagController tagController;
     private GameState state = GameState.CREATED;
     private GameTimer timer = null;
@@ -107,6 +110,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
     
     private Objective playerKillsObjective = null;
     
+    @Getter
     private Set<LocationInfo> pointBlockSet = new HashSet<>();
     private Map<String, Integer> teamScores = new HashMap<>();
     
@@ -1020,7 +1024,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if (event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
         
-        if (event.getBlock().getType() == getPointBlock()) {
+        if (event.getBlock().getType() == config.getPointBlock()) {
             addToPointBlockSet(event.getBlock().getLocation());
         }
     }
@@ -1071,26 +1075,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
         return i;
     }
     
-    public void showScore(boolean showScore) {
-        config.setShowScore(showScore);
-    }
-    
-    public void showScoreExp(boolean showScoreExp) {
-        config.setShowScoreExp(showScoreExp);
-    }
-    
-    public ItemStack getPointItem() {
-        return config.getPointItem();
-    }
-    
-    public void setPointItem(ItemStack pointItem) {
-        config.setPointItem(pointItem);
-    }
-    
-    public Set<String> getItemWhitelist() {
-        return config.getItemWhitelist();
-    }
-    
     public boolean isWhitelisted(ItemStack item) {
         return item == null || isWhitelisted(item.getType(), item.getData().getData());
     }
@@ -1100,7 +1084,9 @@ public abstract class SimpleTeamPvPGame implements Listener {
     }
     
     public boolean isWhitelisted(Material type, int data) {
-        return type == Material.AIR || getItemWhitelist().contains(type.toString()) || getItemWhitelist().contains(type.toString() + ":" + data);
+        return type == Material.AIR
+                || config.getItemWhitelist().contains(type.toString())
+                || config.getItemWhitelist().contains(type.toString() + ":" + data);
     }
     
     public List<ItemStack> getDeathDrops() {
@@ -1140,14 +1126,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
         return drops;
     }
     
-    public Objective getPointObjective() {
-        return pointObjective;
-    }
-    
-    public int getDuration() {
-        return config.getDuration();
-    }
-    
     public void setDuration(int duration) {
         config.setDuration(duration);
         if (timer != null) {
@@ -1156,18 +1134,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
             timer = new GameTimer(this);
             timer.start();
         }
-    }
-    
-    public int getWinScore() {
-        return config.getWinScore();
-    }
-    
-    public void setWinScore(int score) {
-        config.setWinScore(score);
-    }
-    
-    public int getRespawnResistance() {
-        return config.getRespawnResistance();
     }
     
     public void setObjectiveDisplay(String format) {
@@ -1181,22 +1147,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
                         .replace("%winscore%", config.getWinScore() > 0 ? Integer.toString(config.getWinScore()) : "")
                         .replace("%time%", seconds >= 0 ? Utils.formatTime(seconds, TimeUnit.SECONDS) : "")
         );
-    }
-    
-    public String getName() {
-        return name;
-    }
-    
-    public void setPointBlock(Material pointBlock) {
-        config.setPointBlock(pointBlock);
-    }
-    
-    public Material getPointBlock() {
-        return config.getPointBlock();
-    }
-    
-    public Set<LocationInfo> getPointBlockSet() {
-        return pointBlockSet;
     }
     
     public void addToPointBlockSet(LocationInfo loc) {
@@ -1253,5 +1203,21 @@ public abstract class SimpleTeamPvPGame implements Listener {
     
     public String toString() {
         return "Game{key=" + name + ",state=" + state + ",config=" + config + "}";
+    }
+    
+    public boolean setRandom(String type, LocationInfo loc) {
+        switch (type) {
+            case "pos1":
+                config.getRandomRegion().setPos1(loc);
+                break;
+            case "pos2":
+                config.getRandomRegion().setPos2(loc);
+                break;
+            default:
+                return false;
+        }
+        plugin.getConfig().set("game." + name.toLowerCase() + "random." + type, loc.serialize());
+        plugin.saveConfig();
+        return true;
     }
 }

@@ -40,10 +40,10 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
     public CookieWarsGame(SimpleTeamPvP plugin) {
         super(plugin, "cookie");
     }
-
+    
     @Override
     public boolean start() {
-        for(TeamInfo team : plugin.getTeamMap().values()) {
+        for (TeamInfo team : plugin.getTeamMap().values()) {
             team.getScoreboardTeam().setAllowFriendlyFire(false);
             team.getScoreboardTeam().setCanSeeFriendlyInvisibles(true);
             team.getScoreboardTeam().setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
@@ -52,66 +52,66 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
         plugin.getServer().getScoreboardManager().getMainScoreboard().clearSlot(DisplaySlot.PLAYER_LIST);
         return super.start();
     }
-
+    
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
-        if(getState() != GameState.RUNNING)
+        if (getState() != GameState.RUNNING)
             return;
-
-        if(event.getWhoClicked().hasPermission(SimpleTeamPvP.BYPASS_PERM))
+        
+        if (event.getWhoClicked().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
-
-        for(int i : event.getRawSlots()) {
-            if(i <= 8 && i >= 5) {
+        
+        for (int i : event.getRawSlots()) {
+            if (i <= 8 && i >= 5) {
                 event.setCancelled(true);
                 break;
             }
         }
     }
-
+    
     @EventHandler
     public void onPointClick(PlayerInteractEvent event) {
-        if(getState() != GameState.RUNNING)
+        if (getState() != GameState.RUNNING)
             return;
-
-        if(getPointItem() == null)
+        
+        if (getConfig().getPointItem() == null)
             return;
-
+        
         if (event.getHand() != EquipmentSlot.HAND)
             return;
-
-        if(event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK)
+        
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK)
             return;
-
+        
         Player player = event.getPlayer();
-
-        if(player.hasPermission(SimpleTeamPvP.BYPASS_PERM))
+        
+        if (player.hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
-
+        
         TeamInfo team = plugin.getTeam(player);
-
-        if(team == null)
+        
+        if (team == null)
             return;
-
-        if(team.getPoint() == null || !team.getPoint().contains(event.getClickedBlock()))
+        
+        if (team.getPoint() == null || !team.getPoint().contains(event.getClickedBlock()))
             return;
-
+        
         event.setCancelled(true);
-
-        if(!player.getInventory().containsAtLeast(getPointItem(), 1)) {
+        
+        if (!player.getInventory().containsAtLeast(getConfig().getPointItem(), 1)) {
             player.sendMessage(ChatColor.RED + "Du hast keine Cookies in deinem Inventar?");
             return;
         }
-
+        
         int amount = 0;
-        for(int i = 0; i < player.getInventory().getSize() && i <= 39; i++) {
+        for (int i = 0; i < player.getInventory().getSize() && i <= 39; i++) {
             ItemStack item = player.getInventory().getItem(i);
-            if(item != null && item.isSimilar(getPointItem())) {
+            if (item != null && item.isSimilar(getConfig().getPointItem())) {
                 amount += item.getAmount();
                 player.getInventory().setItem(i, null);
             }
         }
-        if(amount > 0) {
+        if (amount > 0) {
             player.updateInventory();
             player.sendMessage(ChatColor.YELLOW + Integer.toString(amount) + ChatColor.GREEN + " Cookie" + (amount == 1 ? "" : "s") + " für dein Team hinzugefügt!");
             incrementScore(team, amount);
@@ -119,17 +119,17 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
             player.sendMessage(ChatColor.RED + "Du hast keine Cookies in deinem Inventar?");
         }
     }
-
+    
     @EventHandler
     public void onIngredientBlockBreak(BlockBreakEvent event) {
-        if(getState() != GameState.RUNNING)
+        if (getState() != GameState.RUNNING)
             return;
-
+        
         TeamInfo team = plugin.getTeam(event.getPlayer());
-        if(team == null)
+        if (team == null)
             return;
-
-        if(getItemWhitelist().contains(event.getBlock().getType().toString())) {
+        
+        if (getConfig().getItemWhitelist().contains(event.getBlock().getType().toString())) {
             event.setCancelled(true);
             event.getBlock().getDrops().stream().filter(this::isWhitelisted).forEach(drop -> {
                 event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation(), drop);
@@ -158,15 +158,15 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
             }
         }
     }
-
+    
     @EventHandler(priority = EventPriority.LOW)
     public void onFoodChange(FoodLevelChangeEvent event) {
-        if(getState() != GameState.RUNNING)
+        if (getState() != GameState.RUNNING)
             return;
-
+        
         event.setCancelled(true);
     }
-
+    
     @Override
     public SimpleTeamPvPGame clone() {
         return new CookieWarsGame(plugin);

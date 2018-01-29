@@ -19,41 +19,41 @@ import de.themoep.simpleteampvp.SimpleTeamPvP;
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
 public class GameTimer {
-
+    
     private final SimpleTeamPvPGame game;
     private final SimpleTeamPvP plugin;
     private int time = 0;
     private int taskId;
-
+    
     public GameTimer(SimpleTeamPvPGame game) {
         this.game = game;
         this.plugin = game.plugin;
-        time = game.getDuration() * 60;
+        time = game.getConfig().getDuration() * 60;
     }
-
+    
     public boolean start() {
-        if(time <= 0)
+        if (time <= 0)
             return false;
         taskId = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
             time--;
-            if(time < 0)
+            if (time < 0)
                 time = 0;
             game.setTimerDisplay(time);
-            if(time == 0) {
+            if (time == 0) {
                 game.stop();
             }
         }, 0L, 20L);
         return true;
     }
-
+    
     public void destroy() {
         plugin.getServer().getScheduler().cancelTask(taskId);
     }
-
+    
     public void setTime(int time) {
         this.time = time;
     }
-
+    
     public int getTime() {
         return time;
     }

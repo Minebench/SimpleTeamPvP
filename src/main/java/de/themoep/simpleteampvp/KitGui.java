@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -48,70 +49,70 @@ import java.util.logging.Level;
 public class KitGui implements Listener {
     private final SimpleTeamPvP plugin;
     private ItemStack[] items;
-
+    
     private Set<UUID> invOpen = new HashSet<UUID>();
-
+    
     public KitGui(SimpleTeamPvP plugin) {
         this.plugin = plugin;
-
+        
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
-
+    
     public void generate() {
         List<KitInfo> kits = new ArrayList<>(plugin.getKitMap().values());
         List<ItemStack> itemList = new ArrayList<ItemStack>();
-        for(int i = 0; i < 9; i++) {
+        for (int i = 0; i < 9; i++) {
             itemList.add(null);
         }
-        if(kits.size() == 0) {
-            for(int i = 0; i < 9; i++) {
+        if (kits.size() == 0) {
+            for (int i = 0; i < 9; i++) {
                 itemList.add(null);
             }
-        } else if(kits.size() == 1) {
+        } else if (kits.size() == 1) {
             itemList.addAll(Arrays.asList(
                     null, null, null, null, kits.get(0).getIcon(), null, null, null, null
             ));
-        } else if(kits.size() == 2) {
+        } else if (kits.size() == 2) {
             itemList.addAll(Arrays.asList(
                     null, null, null, kits.get(0).getIcon(), null, kits.get(1).getIcon(), null, null, null
             ));
-        } else if(kits.size() == 3) {
+        } else if (kits.size() == 3) {
             itemList.addAll(Arrays.asList(
                     null, null, kits.get(0).getIcon(), null, kits.get(1).getIcon(), null, kits.get(2).getIcon(), null, null
             ));
         } else {
-            for(KitInfo kit : kits) {
+            for (KitInfo kit : kits) {
                 itemList.add(null);
                 itemList.add(kit.getIcon());
-                if(itemList.size() % 9 == 0) {
-                    for(int i = 0; i < 9; i++) {
+                if (itemList.size() % 9 == 0) {
+                    for (int i = 0; i < 9; i++) {
                         itemList.add(null);
                     }
                 }
             }
-            while(itemList.size() % 9 != 0) {
+            while (itemList.size() % 9 != 0) {
                 itemList.add(null);
             }
         }
-
-        for(int i = 0; i < 9; i++) {
+        
+        for (int i = 0; i < 9; i++) {
             itemList.add(null);
         }
-
-        if(itemList.size() % 9 != 0) {
-            while(itemList.size() % 9 != 0) {
+        
+        if (itemList.size() % 9 != 0) {
+            while (itemList.size() % 9 != 0) {
                 itemList.add(null);
             }
         }
-
+        
         items = itemList.toArray(new ItemStack[itemList.size()]);
     }
-
+    
     public void show(Player player) {
-        if(!player.isOnline())
+        if (!player.isOnline())
             return;
-
-        if(plugin.getKitMap().size() == 0) {
+        
+        if (plugin.getKitMap().size() == 0) {
             player.sendMessage(ChatColor.RED + "No Kits defined!");
             return;
         }
@@ -121,80 +122,80 @@ public class KitGui implements Listener {
         invOpen.add(player.getUniqueId());
         player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 100000 * 20, 1));
     }
-
+    
     @EventHandler
     public void onItemClick(InventoryClickEvent event) {
-        if(!(event.getWhoClicked() instanceof Player))
+        if (!(event.getWhoClicked() instanceof Player))
             return;
-
-        if(!invOpen.contains(event.getWhoClicked().getUniqueId()))
+        
+        if (!invOpen.contains(event.getWhoClicked().getUniqueId()))
             return;
-
-        if(event.getClickedInventory() != event.getWhoClicked().getOpenInventory().getTopInventory()) {
-            if(event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+        
+        if (event.getClickedInventory() != event.getWhoClicked().getOpenInventory().getTopInventory()) {
+            if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                 event.setCancelled(true);
             }
             return;
         }
-
+        
         event.setCancelled(true);
-
+        
         ItemStack item = event.getCurrentItem();
-        if(item != null && item.getType() != Material.AIR) {
+        if (item != null && item.getType() != Material.AIR) {
             KitInfo kit = plugin.getKit(item);
             close((Player) event.getWhoClicked());
-            if(kit == null) {
+            if (kit == null) {
                 plugin.getLogger().log(Level.WARNING, "Could not find a kit for item " + item.getType() + " in gui of player " + event.getWhoClicked().getName());
-                event.getWhoClicked().sendMessage(ChatColor.RED  + "Could not find a kit for item " + item.getType() + "!");
+                event.getWhoClicked().sendMessage(ChatColor.RED + "Could not find a kit for item " + item.getType() + "!");
             } else {
                 event.getWhoClicked().removePotionEffect(PotionEffectType.INVISIBILITY);
                 plugin.applyKit(kit, (Player) event.getWhoClicked());
-                if (plugin.getGame().getRespawnResistance() > 0) {
-                    event.getWhoClicked().addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, plugin.getGame().getRespawnResistance() * 20, 5, true));
+                if (plugin.getGame().getConfig().getRespawnResistance() > 0) {
+                    event.getWhoClicked().addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, plugin.getGame().getConfig().getRespawnResistance() * 20, 5, true));
                 }
             }
         }
     }
-
+    
     public void close(Player player) {
-        if(invOpen.contains(player.getUniqueId())) {
+        if (invOpen.contains(player.getUniqueId())) {
             invOpen.remove(player.getUniqueId());
             Inventory oldInv = player.getOpenInventory().getTopInventory();
-            if(oldInv.getType() == InventoryType.ANVIL) {
+            if (oldInv.getType() == InventoryType.ANVIL) {
                 oldInv.setItem(0, null);
                 oldInv.setItem(1, null);
                 oldInv.setItem(2, null);
             }
             oldInv.clear();
-            if(player.getOpenInventory().getTopInventory().getType() != InventoryType.CRAFTING) {
+            if (player.getOpenInventory().getTopInventory().getType() != InventoryType.CRAFTING) {
                 player.closeInventory();
             }
         }
     }
-
+    
     @EventHandler
     public void onItemDrag(InventoryDragEvent event) {
-        if(invOpen.contains(event.getWhoClicked().getUniqueId()) && event.getInventory() == event.getWhoClicked().getOpenInventory().getTopInventory()) {
+        if (invOpen.contains(event.getWhoClicked().getUniqueId()) && event.getInventory() == event.getWhoClicked().getOpenInventory().getTopInventory()) {
             event.setCancelled(true);
         }
     }
-
+    
     @EventHandler
     public void onInventoryClose(final InventoryCloseEvent event) {
-        if(event.getPlayer() instanceof Player && invOpen.contains(event.getPlayer().getUniqueId())) {
+        if (event.getPlayer() instanceof Player && invOpen.contains(event.getPlayer().getUniqueId())) {
             plugin.getServer().getScheduler().runTask(plugin, () -> {
-                if(invOpen.contains(event.getPlayer().getUniqueId())) {
+                if (invOpen.contains(event.getPlayer().getUniqueId())) {
                     show((Player) event.getPlayer());
                 }
             });
         }
     }
-
+    
     @EventHandler
     public void onPlayerLoggout(PlayerQuitEvent event) {
         invOpen.remove(event.getPlayer().getUniqueId());
     }
-
+    
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         invOpen.remove(event.getPlayer().getUniqueId());
@@ -205,36 +206,36 @@ public class KitGui implements Listener {
             }
         }
     }
-
+    
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
-        if(event.getEntity() instanceof Player) {
+        if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
-            if(invOpen.contains(player.getUniqueId())) {
+            if (invOpen.contains(player.getUniqueId())) {
                 event.setCancelled(true);
             }
         }
     }
-
+    
     @EventHandler
-    public void onPlayerPickupItem(PlayerPickupItemEvent event) {
-        if(invOpen.contains(event.getPlayer().getUniqueId())) {
+    public void onPlayerPickupItem(EntityPickupItemEvent event) {
+        if (event.getEntity() instanceof Player && invOpen.contains(event.getEntity().getUniqueId())) {
             event.setCancelled(true);
         }
     }
-
+    
     @EventHandler
     public void onPlayerItemDrop(PlayerDropItemEvent event) {
-        if(invOpen.contains(event.getPlayer().getUniqueId())) {
+        if (invOpen.contains(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
         }
     }
-
+    
     @EventHandler
     public void onEntityTarget(EntityTargetLivingEntityEvent event) {
-        if(event.getEntity() instanceof Player) {
+        if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
-            if(invOpen.contains(player.getUniqueId())) {
+            if (invOpen.contains(player.getUniqueId())) {
                 event.setCancelled(true);
             }
         }

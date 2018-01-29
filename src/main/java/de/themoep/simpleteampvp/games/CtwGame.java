@@ -49,17 +49,17 @@ import java.util.Set;
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
 public class CtwGame extends SimpleTeamPvPGame {
-
+    
     private Objective carriedObjective;
-
+    
     Set<Integer> artificialWool = new HashSet<Integer>();
-
+    
     public CtwGame(SimpleTeamPvP plugin) {
         super(plugin, "ctw");
-        showScore(true);
-        useKits(true);
+        getConfig().setShowScore(true);
+        getConfig().setUsingKits(true);
     }
-
+    
     @Override
     public boolean start() {
         for (TeamInfo team : plugin.getTeamMap().values()) {
@@ -68,7 +68,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             team.getScoreboardTeam().setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
         }
         plugin.getServer().getScoreboardManager().getMainScoreboard().clearSlot(DisplaySlot.PLAYER_LIST);
-
+        
         if (!plugin.useMultiLineApi()) {
             carriedObjective = plugin.getServer().getScoreboardManager().getMainScoreboard().getObjective("carriedPoints");
             if (carriedObjective != null) {
@@ -84,7 +84,7 @@ public class CtwGame extends SimpleTeamPvPGame {
         }
         return super.start();
     }
-
+    
     @Override
     public void stop() {
         super.stop();
@@ -100,52 +100,52 @@ public class CtwGame extends SimpleTeamPvPGame {
             carriedObjective = null;
         }
     }
-
+    
     @EventHandler
     public void onWoolBlockPlace(BlockPlaceEvent event) {
         if (getState() != GameState.RUNNING) {
             return;
         }
-
+        
         TeamInfo woolTeam = plugin.getTeam(event.getBlock());
         if (woolTeam == null) {
             return;
         }
-
+        
         TeamInfo team = plugin.getTeam(event.getPlayer());
         if (team == null) {
             return;
         }
-
+        
         if (!event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM)) {
             artificialWool.add(event.getBlock().getLocation().hashCode());
         }
-
+        
         if (team != woolTeam && team.getRegion().contains(event.getBlock().getLocation())) {
             incrementScore(team);
             event.getPlayer().sendMessage(ChatColor.YELLOW + "Du hast einen Wolleblock für dein Team hinzugefügt!");
         }
-
+        
         updateCarried(event.getPlayer());
-
+        
     }
-
+    
     @EventHandler(ignoreCancelled = true)
     public void onWoolBlockBreak(BlockBreakEvent event) {
         if (getState() != GameState.RUNNING) {
             return;
         }
-
+        
         TeamInfo woolTeam = plugin.getTeam(event.getBlock());
         if (woolTeam == null) {
             return;
         }
-
+        
         TeamInfo team = plugin.getTeam(event.getPlayer());
         if (team == null) {
             return;
         }
-
+        
         if (team.equals(woolTeam)
                 && !event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM)
                 && !artificialWool.contains(event.getBlock().getLocation().hashCode())
@@ -154,7 +154,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             event.setCancelled(true);
             return;
         }
-
+        
         for (TeamInfo t : plugin.getTeamMap().values()) {
             if (t.getRegion().contains(event.getBlock().getLocation())) {
                 if (woolTeam != t) {
@@ -168,32 +168,32 @@ public class CtwGame extends SimpleTeamPvPGame {
                 break;
             }
         }
-
+        
     }
-
+    
     @EventHandler
     public void onWoolBlockExplode(BlockExplodeEvent event) {
         handleBlocks(event.blockList());
     }
-
+    
     @EventHandler
     public void onWoolBlockExplode(EntityExplodeEvent event) {
         handleBlocks(event.blockList());
     }
-
+    
     private void handleBlocks(List<Block> blocklist) {
         if (getState() != GameState.RUNNING) {
             return;
         }
-
+        
         TeamInfo informTeam = null;
-
+        
         for (Block block : blocklist) {
             TeamInfo woolTeam = plugin.getTeam(block);
             if (woolTeam == null) {
                 continue;
             }
-
+            
             for (TeamInfo t : plugin.getTeamMap().values()) {
                 if (t.getRegion().contains(block.getLocation())) {
                     decrementScore(t);
@@ -202,27 +202,28 @@ public class CtwGame extends SimpleTeamPvPGame {
                 }
             }
         }
-
+        
         if (informTeam != null) {
             plugin.broadcast(informTeam, ChatColor.DARK_RED + "ACHTUNG: "
                     + ChatColor.RED + " Eure Wollkammer ist in die Luft geflogen!");
         }
     }
-
+    
     @EventHandler
     public void onWoolPistonPush(BlockPistonExtendEvent event) {
         handlePistonEvent(event);
     }
+    
     @EventHandler
     public void onWoolPistonPush(BlockPistonRetractEvent event) {
         handlePistonEvent(event);
     }
-
+    
     private void handlePistonEvent(BlockPistonEvent event) {
         if (getState() != GameState.RUNNING) {
             return;
         }
-
+        
         for (TeamInfo t : plugin.getTeamMap().values()) {
             if (t.getRegion().contains(event.getBlock().getLocation()) || t.getRegion().contains(event.getBlock().getRelative(event.getDirection()).getLocation())) {
                 event.setCancelled(true);
@@ -230,25 +231,25 @@ public class CtwGame extends SimpleTeamPvPGame {
             }
         }
     }
-
+    
     @EventHandler
     public void onWoolDye(CraftItemEvent event) {
         if (plugin.getTeam(event.getRecipe().getResult()) != null) {
             event.setResult(Event.Result.DENY);
         }
     }
-
+    
     @EventHandler
     public void onWoolBlockDrop(PlayerDropItemEvent event) {
         if (getState() != GameState.RUNNING) {
             return;
         }
-
+        
         TeamInfo woolTeam = plugin.getTeam(event.getItemDrop().getItemStack());
         if (woolTeam == null) {
             return;
         }
-
+        
         updateCarried(event.getPlayer());
     }
     
@@ -292,20 +293,20 @@ public class CtwGame extends SimpleTeamPvPGame {
         event.setCancelled(true);
         event.setCurrentItem(null);
     }
-
+    
     @EventHandler
     public void onDeath(PlayerDeathEvent event) {
         if (getState() != GameState.RUNNING) {
             return;
         }
-
+        
         TeamInfo team = plugin.getTeam(event.getEntity());
         if (team == null) {
             return;
         }
-
+        
         resetCarried(event.getEntity());
-
+        
         if (!event.getKeepInventory() && plugin.getKitMap().size() == 1) {
             KitInfo kit = plugin.getKitMap().values().iterator().next();
             event.setKeepInventory(true);
@@ -317,7 +318,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             event.getEntity().getInventory().clear();
         }
     }
-
+    
     private void resetCarried(Player player) {
         if (plugin.useMultiLineApi()) {
             MultiLineAPI.clearLines(tagController, player);
@@ -325,14 +326,14 @@ public class CtwGame extends SimpleTeamPvPGame {
             carriedObjective.getScore(player.getName()).setScore(0);
         }
     }
-
+    
     private void updateCarried(Player player) {
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             TeamInfo team = plugin.getTeam(player);
             if (team == null) {
                 return;
             }
-
+            
             // Create two sets that contain the materials to check the inventory for
             Set<Material> teamMaterials = new HashSet<>();
             Set<Byte> teamData = new HashSet<>();
@@ -340,14 +341,14 @@ public class CtwGame extends SimpleTeamPvPGame {
                 teamMaterials.add(t.getBlockMaterial());
                 teamData.add(t.getBlockData());
             }
-
+            
             int amount = 0;
             for (ItemStack item : player.getInventory()) {
                 if (item != null && teamMaterials.contains(item.getType()) && teamData.contains(item.getData().getData())) {
                     amount += item.getAmount();
                 }
             }
-
+            
             if (plugin.useMultiLineApi()) {
                 if (MultiLineAPI.getLineCount(tagController, player) < 1) {
                     MultiLineAPI.addLine(tagController, player);
@@ -359,7 +360,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             }
         });
     }
-
+    
     @Override
     public SimpleTeamPvPGame clone() {
         return new CtwGame(plugin);
