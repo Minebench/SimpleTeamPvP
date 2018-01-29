@@ -14,6 +14,7 @@ import de.themoep.simpleteampvp.games.SimpleTeamPvPGame;
 import de.themoep.simpleteampvp.games.XmasGame;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Color;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
@@ -225,6 +226,34 @@ public class SimpleTeamPvP extends JavaPlugin {
     public TeamInfo getTeam(Material mat, byte data) {
         for(TeamInfo team : teamMap.values()) {
             if(team.getBlockMaterial() == mat && team.getBlockData() == data) {
+                return team;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Get a team by its region
+     * @param location The location to get the team by
+     * @return The team, null of none found
+     */
+    public TeamInfo getTeamByRegion(Location location) {
+        for(TeamInfo team : teamMap.values()) {
+            if(team.regionContains(location)) {
+                return team;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Get a team by its join region
+     * @param location The location to get the team by
+     * @return The team, null of none found
+     */
+    public TeamInfo getTeamByJoinLocation(Location location) {
+        for(TeamInfo team : teamMap.values()) {
+            if(team.joinRegionContains(location)) {
                 return team;
             }
         }
@@ -525,4 +554,5 @@ public class SimpleTeamPvP extends JavaPlugin {
     public boolean useMultiLineApi() {
         return useMultiLineApi;
     }
+    
 }

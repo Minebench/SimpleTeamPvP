@@ -1,5 +1,7 @@
 package de.themoep.simpleteampvp;
 
+import lombok.Getter;
+import lombok.Setter;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -32,17 +34,20 @@ import java.util.stream.Collectors;
  * You should have received a copy of the Mozilla Public License v2.0
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
+@Getter
+@Setter
 public class TeamInfo {
     private ChatColor color = null;
     private Team scoreboardTeam;
     private Material blockMaterial = Material.AIR;
     private byte blockData = 0;
-
+    
     private LocationInfo spawn = null;
-
+    
     private LocationInfo point = null;
-    private LocationInfo pos1 = null;
-    private LocationInfo pos2 = null;
+    
+    private RegionInfo region = null;
+    private RegionInfo joinRegion = null;
 
     /**
      * Create a new TeamInfo object
@@ -95,12 +100,14 @@ public class TeamInfo {
             point = new LocationInfo(pointSection);
         }
         ConfigurationSection pos1Section = config.getConfigurationSection("pos1");
-        if(pos1Section != null) {
-            pos1 = new LocationInfo(pos1Section);
-        }
         ConfigurationSection pos2Section = config.getConfigurationSection("pos2");
-        if(pos2Section != null) {
-            pos2 = new LocationInfo(pos2Section);
+        if(pos1Section != null && pos2Section != null) {
+            region = new RegionInfo(new LocationInfo(pos1Section), new LocationInfo(pos2Section));
+        }
+        ConfigurationSection joinPos1Section = config.getConfigurationSection("join-pos1");
+        ConfigurationSection joinPos2Section = config.getConfigurationSection("join-pos2");
+        if(joinPos1Section != null && joinPos2Section != null) {
+            joinRegion = new RegionInfo(new LocationInfo(joinPos1Section), new LocationInfo(joinPos2Section));
         }
     }
 
@@ -111,45 +118,11 @@ public class TeamInfo {
         data.put("block", this.blockMaterial + ":" + this.blockData);
         data.put("spawn", this.spawn == null ? null : this.spawn.serialize());
         data.put("point", this.point == null ? null : this.point.serialize());
-        data.put("pos1", this.pos1 == null ? null : this.pos1.serialize());
-        data.put("pos2", this.pos2 == null ? null : this.pos2.serialize());
+        data.put("pos1", this.region == null ? null : this.region.getPos1().serialize());
+        data.put("pos2", this.region == null ? null : this.region.getPos2().serialize());
+        data.put("join-pos1", this.joinRegion == null ? null : this.joinRegion.getPos1().serialize());
+        data.put("join-pos2", this.joinRegion == null ? null : this.joinRegion.getPos2().serialize());
         return data;
-    }
-
-    public Team getScoreboardTeam() {
-        return scoreboardTeam;
-    }
-
-    public LocationInfo getSpawn() {
-        return spawn;
-    }
-
-    public void setSpawn(LocationInfo spawn) {
-        this.spawn = spawn;
-    }
-
-    public LocationInfo getPoint() {
-        return point;
-    }
-
-    public void setPoint(LocationInfo point) {
-        this.point = point;
-    }
-
-    public LocationInfo getPos1() {
-        return pos1;
-    }
-
-    public void setPos1(LocationInfo point) {
-        this.pos1 = point;
-    }
-
-    public LocationInfo getPos2() {
-        return pos2;
-    }
-
-    public void setPos2(LocationInfo point) {
-        this.pos2 = point;
     }
 
     public boolean inTeam(Player player) {
@@ -199,18 +172,6 @@ public class TeamInfo {
 
     }
 
-    public ChatColor getColor() {
-        return color;
-    }
-
-    public Material getBlockMaterial() {
-        return blockMaterial;
-    }
-
-    public byte getBlockData() {
-        return blockData;
-    }
-
     public boolean setBlock(String blockStr) {
         if(blockStr.indexOf(':') > -1 && blockStr.length() > blockStr.indexOf(':') + 1) {
             String matStr = blockStr.toUpperCase().substring(0, blockStr.indexOf(':'));
@@ -244,26 +205,11 @@ public class TeamInfo {
     }
 
     public boolean regionContains(Location loc) {
-        if (pos1 == null || pos2 == null) {
-            return false;
-        }
-
-        if (!loc.getWorld().getName().equalsIgnoreCase(pos1.getWorldName())) {
-            return false;
-        }
-
-        double x = loc.getX();
-        double y = loc.getY();
-        double z = loc.getZ();
-
-        int x1 = Math.min(pos1.getBlockX(), pos2.getBlockX());
-        int y1 = Math.min(pos1.getBlockY(), pos2.getBlockY());
-        int z1 = Math.min(pos1.getBlockZ(), pos2.getBlockZ());
-        int x2 = Math.max(pos1.getBlockX(), pos2.getBlockX());
-        int y2 = Math.max(pos1.getBlockY(), pos2.getBlockY());
-        int z2 = Math.max(pos1.getBlockZ(), pos2.getBlockZ());
-
-        return x >= x1 && x <= x2 && y >= y1 && y <= y2 && z >= z1 && z <= z2;
+        return region != null && region.contains(loc);
+    }
+    
+    public boolean joinRegionContains(Location loc) {
+        return joinRegion != null && joinRegion.contains(loc);
     }
 
     public boolean containsPlayer(Player p) {

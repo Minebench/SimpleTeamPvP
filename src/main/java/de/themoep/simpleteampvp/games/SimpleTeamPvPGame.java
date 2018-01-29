@@ -106,7 +106,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
     private Objective playerKillsObjective = null;
 
-    private Set<LocationInfo> pointBlockSet = new HashSet<LocationInfo>();
+    private Set<LocationInfo> pointBlockSet = new HashSet<>();
     private Map<String, Integer> teamScores = new HashMap<>();
 
     public SimpleTeamPvPGame(SimpleTeamPvP plugin, String name) {
@@ -273,12 +273,8 @@ public abstract class SimpleTeamPvPGame implements Listener {
 
             if(plugin.getTeam(player) != null)
                 continue;
-
-            Block block = player.getLocation().getBlock();
-            while(block.getType() == Material.AIR && block.getLocation().getBlockY() > 0) {
-                block = player.getLocation().getWorld().getBlockAt(block.getX(), block.getY() - 1, block.getZ());
-            }
-            TeamInfo team = plugin.getTeam(block);
+    
+            TeamInfo team = plugin.getTeamByJoinLocation(player.getLocation());
             if(team != null) {
                 team.addPlayer(player);
             }

@@ -1,5 +1,6 @@
 package de.themoep.simpleteampvp;
 
+import lombok.Data;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -34,6 +35,7 @@ import java.util.logging.Level;
  * You should have received a copy of the Mozilla Public License v2.0
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
+@Data
 public class KitInfo {
     private String name;
 
@@ -45,7 +47,7 @@ public class KitInfo {
     private ItemStack legs = null;
     private ItemStack boots = null;
 
-    private List<ItemStack> items = new ArrayList<ItemStack>();
+    private List<ItemStack> items = new ArrayList<>();
 
     public KitInfo(String name) {
         this.name = name;
@@ -74,42 +76,6 @@ public class KitInfo {
         } catch(ClassCastException e) {
             Bukkit.getLogger().log(Level.WARNING, "[SimpleTeamPvP] Could not load items for kit " + name);
         }
-    }
-
-    public ItemStack getHelmet() {
-        return helmet;
-    }
-
-    public void setHelmet(ItemStack helmet) {
-        this.helmet = helmet;
-    }
-
-    public ItemStack getChest() {
-        return chest;
-    }
-
-    public void setChest(ItemStack chest) {
-        this.chest = chest;
-    }
-
-    public ItemStack getLegs() {
-        return legs;
-    }
-
-    public void setLegs(ItemStack legs) {
-        this.legs = legs;
-    }
-
-    public ItemStack getBoots() {
-        return boots;
-    }
-
-    public void setBoots(ItemStack boots) {
-        this.boots = boots;
-    }
-
-    public List<ItemStack> getItems() {
-        return items;
     }
 
     public List<ItemStack> addItem(ItemStack item) {
@@ -170,10 +136,6 @@ public class KitInfo {
     public void setIcon(ItemStack icon) {
         this.icon = icon;
         generateIcon();
-    }
-
-    public String getName() {
-        return name;
     }
 
     public Map<String, Object> serialize() {

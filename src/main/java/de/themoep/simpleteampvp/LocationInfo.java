@@ -1,5 +1,6 @@
 package de.themoep.simpleteampvp;
 
+import lombok.Data;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -26,14 +27,15 @@ import java.util.Map;
  * You should have received a copy of the Mozilla Public License v2.0
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
+@Data
 public class LocationInfo implements Cloneable {
-
+    
+    private final String worldName;
     private final double x;
     private final double y;
     private final double z;
     private final float yaw;
     private final float pitch;
-    private final String worldName;
 
     public LocationInfo(String worldName, double x, double y, double z) {
         this(worldName, x, y, z, 0F, 0F);
@@ -56,18 +58,6 @@ public class LocationInfo implements Cloneable {
         this(config.getString("world"), config.getDouble("x"), config.getDouble("y"), config.getDouble("z"), (float) config.getDouble("yaw"), (float) config.getDouble("pitch"));
     }
 
-    public double getX() {
-        return x;
-    }
-
-    public double getY() {
-        return y;
-    }
-
-    public double getZ() {
-        return z;
-    }
-
     public int getBlockX() {
         return NumberConversions.floor(x);
     }
@@ -80,36 +70,9 @@ public class LocationInfo implements Cloneable {
         return NumberConversions.floor(z);
     }
 
-    public float getYaw() {
-        return yaw;
-    }
-
-    public float getPitch() {
-        return pitch;
-    }
-
-    public String getWorldName() {
-        return worldName;
-    }
-
     public Location getLocation() {
         World world = Bukkit.getWorld(getWorldName());
         return world == null ? null : new Location(world, getX(), getY(), getZ(), getYaw(), getPitch());
-    }
-
-    public int hashCode() {
-        byte hash = 3;
-        int hash1 = 19 * hash + (this.worldName != null?this.worldName.hashCode():0);
-        hash1 = 19 * hash1 + (int)(Double.doubleToLongBits(this.x) ^ Double.doubleToLongBits(this.x) >>> 32);
-        hash1 = 19 * hash1 + (int)(Double.doubleToLongBits(this.y) ^ Double.doubleToLongBits(this.y) >>> 32);
-        hash1 = 19 * hash1 + (int)(Double.doubleToLongBits(this.z) ^ Double.doubleToLongBits(this.z) >>> 32);
-        hash1 = 19 * hash1 + Float.floatToIntBits(this.pitch);
-        hash1 = 19 * hash1 + Float.floatToIntBits(this.yaw);
-        return hash1;
-    }
-
-    public String toString() {
-        return "LocationInfo{world=" + this.worldName + ",x=" + this.x + ",y=" + this.y + ",z=" + this.z + ",pitch=" + this.pitch + ",yaw=" + this.yaw + '}';
     }
 
     public Map<String, Object> serialize() {
