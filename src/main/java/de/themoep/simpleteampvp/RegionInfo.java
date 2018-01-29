@@ -32,4 +32,8 @@ public class RegionInfo {
         
         return x >= x1 && x <= x2 && y >= y1 && y <= y2 && z >= z1 && z <= z2;
     }
+    
+    public String getWorldName() {
+        return pos1 != null ? pos1.getWorldName() : pos2 != null ? pos2.getWorldName() : "";
+    }
 }

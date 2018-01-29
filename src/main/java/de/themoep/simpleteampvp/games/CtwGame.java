@@ -121,7 +121,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             artificialWool.add(event.getBlock().getLocation().hashCode());
         }
 
-        if (team != woolTeam && team.regionContains(event.getBlock().getLocation())) {
+        if (team != woolTeam && team.getRegion().contains(event.getBlock().getLocation())) {
             incrementScore(team);
             event.getPlayer().sendMessage(ChatColor.YELLOW + "Du hast einen Wolleblock für dein Team hinzugefügt!");
         }
@@ -156,7 +156,7 @@ public class CtwGame extends SimpleTeamPvPGame {
         }
 
         for (TeamInfo t : plugin.getTeamMap().values()) {
-            if (t.regionContains(event.getBlock().getLocation())) {
+            if (t.getRegion().contains(event.getBlock().getLocation())) {
                 if (woolTeam != t) {
                     decrementScore(t);
                 }
@@ -195,7 +195,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             }
 
             for (TeamInfo t : plugin.getTeamMap().values()) {
-                if (t.regionContains(block.getLocation())) {
+                if (t.getRegion().contains(block.getLocation())) {
                     decrementScore(t);
                     informTeam = t;
                     break;
@@ -224,7 +224,7 @@ public class CtwGame extends SimpleTeamPvPGame {
         }
 
         for (TeamInfo t : plugin.getTeamMap().values()) {
-            if (t.regionContains(event.getBlock().getLocation()) || t.regionContains(event.getBlock().getRelative(event.getDirection()).getLocation())) {
+            if (t.getRegion().contains(event.getBlock().getLocation()) || t.getRegion().contains(event.getBlock().getRelative(event.getDirection()).getLocation())) {
                 event.setCancelled(true);
                 break;
             }

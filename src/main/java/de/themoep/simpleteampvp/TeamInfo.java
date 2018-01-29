@@ -46,8 +46,8 @@ public class TeamInfo {
     
     private LocationInfo point = null;
     
-    private RegionInfo region = null;
-    private RegionInfo joinRegion = null;
+    private RegionInfo region = new RegionInfo(null, null);
+    private RegionInfo joinRegion = new RegionInfo(null, null);
 
     /**
      * Create a new TeamInfo object
@@ -118,10 +118,10 @@ public class TeamInfo {
         data.put("block", this.blockMaterial + ":" + this.blockData);
         data.put("spawn", this.spawn == null ? null : this.spawn.serialize());
         data.put("point", this.point == null ? null : this.point.serialize());
-        data.put("pos1", this.region == null ? null : this.region.getPos1().serialize());
-        data.put("pos2", this.region == null ? null : this.region.getPos2().serialize());
-        data.put("join-pos1", this.joinRegion == null ? null : this.joinRegion.getPos1().serialize());
-        data.put("join-pos2", this.joinRegion == null ? null : this.joinRegion.getPos2().serialize());
+        data.put("pos1", this.region.getPos1() == null ? null : this.region.getPos1().serialize());
+        data.put("pos2", this.region.getPos2() == null ? null : this.region.getPos2().serialize());
+        data.put("join-pos1", this.joinRegion.getPos1() == null ? null : this.joinRegion.getPos1().serialize());
+        data.put("join-pos2", this.joinRegion.getPos2() == null ? null : this.joinRegion.getPos2().serialize());
         return data;
     }
 
@@ -202,14 +202,6 @@ public class TeamInfo {
     public void setBlock(Block block) {
         blockMaterial = block.getType();
         blockData = block.getData();
-    }
-
-    public boolean regionContains(Location loc) {
-        return region != null && region.contains(loc);
-    }
-    
-    public boolean joinRegionContains(Location loc) {
-        return joinRegion != null && joinRegion.contains(loc);
     }
 
     public boolean containsPlayer(Player p) {

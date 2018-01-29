@@ -239,7 +239,7 @@ public class SimpleTeamPvP extends JavaPlugin {
      */
     public TeamInfo getTeamByRegion(Location location) {
         for(TeamInfo team : teamMap.values()) {
-            if(team.regionContains(location)) {
+            if(team.getRegion().contains(location)) {
                 return team;
             }
         }
@@ -253,7 +253,7 @@ public class SimpleTeamPvP extends JavaPlugin {
      */
     public TeamInfo getTeamByJoinLocation(Location location) {
         for(TeamInfo team : teamMap.values()) {
-            if(team.joinRegionContains(location)) {
+            if(team.getJoinRegion().contains(location)) {
                 return team;
             }
         }

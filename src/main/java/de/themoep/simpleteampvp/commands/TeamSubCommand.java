@@ -223,15 +223,25 @@ public class TeamSubCommand extends SubCommand {
                         } else if ("point".equalsIgnoreCase(type)) {
                             teamInfo.setPoint(loc);
                         } else if ("pos1".equalsIgnoreCase(type)) {
-                            if (teamInfo.getPos2() != null && !teamInfo.getPos2().getWorldName().equalsIgnoreCase(loc.getWorldName())) {
-                                sender.sendMessage(ChatColor.RED + "Warning: Position 1 has to be in the same world as position 2! (Pos 2 world: " + teamInfo.getPos2().getWorldName() + ")");
+                            if (teamInfo.getRegion().getPos2() != null && !teamInfo.getRegion().getPos2().getWorldName().equalsIgnoreCase(loc.getWorldName())) {
+                                sender.sendMessage(ChatColor.RED + "Warning: Position 1 has to be in the same world as position 2! (Pos 2 world: " + teamInfo.getRegion().getPos2().getWorldName() + ")");
                             }
-                            teamInfo.setPos1(loc);
+                            teamInfo.getRegion().setPos1(loc);
                         } else if ("pos2".equalsIgnoreCase(type)) {
-                            if (teamInfo.getPos1() != null && !teamInfo.getPos1().getWorldName().equalsIgnoreCase(loc.getWorldName())) {
-                                sender.sendMessage(ChatColor.RED + "Warning: Position 2 has to be in the same world as position 1! (Pos 1 world: " + teamInfo.getPos1().getWorldName() + ")");
+                            if (teamInfo.getRegion().getPos1() != null && !teamInfo.getRegion().getPos1().getWorldName().equalsIgnoreCase(loc.getWorldName())) {
+                                sender.sendMessage(ChatColor.RED + "Warning: Position 2 has to be in the same world as position 1! (Pos 1 world: " + teamInfo.getRegion().getPos1().getWorldName() + ")");
                             }
-                            teamInfo.setPos2(loc);
+                            teamInfo.getRegion().setPos2(loc);
+                        } else if ("joinpos1".equalsIgnoreCase(type)) {
+                            if (teamInfo.getJoinRegion().getPos2() != null && !teamInfo.getJoinRegion().getPos2().getWorldName().equalsIgnoreCase(loc.getWorldName())) {
+                                sender.sendMessage(ChatColor.RED + "Warning: Position 1 has to be in the same world as position 2! (Pos 2 world: " + teamInfo.getRegion().getPos2().getWorldName() + ")");
+                            }
+                            teamInfo.getRegion().setPos1(loc);
+                        } else if ("joinpos2".equalsIgnoreCase(type)) {
+                            if (teamInfo.getJoinRegion().getPos1() != null && !teamInfo.getJoinRegion().getPos1().getWorldName().equalsIgnoreCase(loc.getWorldName())) {
+                                sender.sendMessage(ChatColor.RED + "Warning: Position 2 has to be in the same world as position 1! (Pos 1 world: " + teamInfo.getRegion().getPos1().getWorldName() + ")");
+                            }
+                            teamInfo.getRegion().setPos2(loc);
                         } else {
                             sender.sendMessage(ChatColor.RED + type + " is not a valid team location setting. Valid ones are spawn, point, pos1 or pos2!");
                             return true;

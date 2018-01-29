@@ -2,6 +2,7 @@ package de.themoep.simpleteampvp.games;
 
 import de.themoep.simpleteampvp.LocationInfo;
 import de.themoep.simpleteampvp.RegionInfo;
+import lombok.Data;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
@@ -28,83 +29,80 @@ import java.util.Set;
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
+@Data
 public class GameConfig {
 
     private final ConfigurationSection config;
 
     /* --- Settings --- */
     @GameConfigSetting(key = "use-kits")
-    boolean useKits = false;
+    private boolean usingKits = false;
 
     @GameConfigSetting(key = "show-score")
-    boolean showScore = false;
+    private boolean showScore = false;
 
     @GameConfigSetting(key = "score-in-exp-bar")
-    boolean showScoreExp = false;
+    private boolean showScoreExp = false;
 
     @GameConfigSetting(key = "filter.break")
-    boolean filterBreak = false;
+    private boolean filterBreak = false;
 
     @GameConfigSetting(key = "filter.place")
-    boolean filterPlace = false;
+    private boolean filterPlace = false;
 
     @GameConfigSetting(key = "filter.drops")
-    boolean filterDrops = false;
+    private boolean filterDrops = false;
 
     @GameConfigSetting(key = "filter.crafting")
-    boolean filterCrafting = false;
+    private boolean filterCrafting = false;
 
     @GameConfigSetting(key = "stop-build")
-    boolean stopBuild = false;
+    private boolean stopBuild = false;
 
     @GameConfigSetting(key = "stop-interact")
-    boolean stopInteract = false;
+    private boolean stopInteract = false;
 
     @GameConfigSetting(key = "stop-container-access")
-    boolean stopContainerAccess = false;
+    private boolean stopContainerAccess = false;
 
     @GameConfigSetting(key = "stop-armor-change")
-    boolean stopArmorChange = false;
+    private boolean stopArmorChange = false;
 
     @GameConfigSetting(key = "kill-streak.name")
-    boolean killStreakDisplayName = false;
+    private boolean killStreakDisplayName = false;
 
     @GameConfigSetting(key = "kill-streak.tab")
-    boolean killStreakDisplayTab = false;
+    private boolean killStreakDisplayTab = false;
 
     @GameConfigSetting(key = "respawn-resistance")
-    int respawnResistance = 5;
+    private int respawnResistance = 5;
 
     @GameConfigSetting(key = "objective-display")
-    String objectiveDisplay = "Points (%winscore%)";
+    private String objectiveDisplay = "Points (%winscore%)";
 
     @GameConfigSetting(key = "pointitem")
-    ItemStack pointItem = null;
+    private ItemStack pointItem = null;
 
     @GameConfigSetting(key = "filter.whitelist")
-    Set<String> itemWhitelist = new HashSet<>();
+    private Set<String> itemWhitelist = new HashSet<>();
 
     @GameConfigSetting(key = "death-drops")
-    List<ItemStack> deathDrops = new ArrayList<>();
+    private List<ItemStack> deathDrops = new ArrayList<>();
 
     @GameConfigSetting(key = "winscore")
-    int winScore = -1;
+    private int winScore = -1;
 
     @GameConfigSetting(key = "duration")
-    int duration = -1;
+    private int duration = -1;
 
     @GameConfigSetting(key = "pointBlock")
-    Material pointBlock = Material.AIR;
+    private Material pointBlock = Material.AIR;
 
     @GameConfigSetting(key = "pointitemchest")
-    LocationInfo pointItemChestLocation = null;
+    private LocationInfo pointItemChestLocation = null;
     
     @GameConfigSetting(key = "random")
-    RegionInfo randomRegion = null;
-
-    public GameConfig(ConfigurationSection config) {
-        this.config = config;
-    }
+    private RegionInfo randomRegion = null;
 
     public ConfigurationSection getConfig() {
         return config;
