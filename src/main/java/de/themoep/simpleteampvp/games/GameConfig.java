@@ -1,6 +1,7 @@
 package de.themoep.simpleteampvp.games;
 
 import de.themoep.simpleteampvp.LocationInfo;
+import de.themoep.simpleteampvp.RegionInfo;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
@@ -97,6 +98,9 @@ public class GameConfig {
 
     @GameConfigSetting(key = "pointitemchest")
     LocationInfo pointItemChestLocation = null;
+    
+    @GameConfigSetting(key = "random")
+    RegionInfo randomRegion = null;
 
     public GameConfig(ConfigurationSection config) {
         this.config = config;
