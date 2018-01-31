@@ -125,6 +125,11 @@ public class SimpleTeamPvP extends JavaPlugin {
         for (KitInfo kitInfo : kitMap.values()) {
             toConfig(kitInfo, false);
         }
+        for (SimpleTeamPvPGame game : gameMap.values()) {
+            for (TeamInfo team : game.getConfig().getTeams().values()) {
+                getConfig().set("games." + game.getName() + ".teams." + team.getName(), team.serialize());
+            }
+        }
         saveConfig();
     }
     
