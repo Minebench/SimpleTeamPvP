@@ -13,8 +13,8 @@ import org.bukkit.inventory.ItemStack;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -54,7 +54,7 @@ public class SimpleConfig {
                     case "Collection":
                     case "List":
                     case "Set":
-                        for (Object configValue : getConfig().getList(configSetting.key(), (List<?>) defValue)) {
+                        for (Object configValue : getConfig().getList(configSetting.key(), new ArrayList<Object>((Collection<?>) defValue))) {
                             Object v = loadValue(parameterName, configValue, null);
                             if (v != null) {
                                 ((Collection) value).add(v);
