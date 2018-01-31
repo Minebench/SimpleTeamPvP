@@ -33,6 +33,7 @@ public class SimpleConfig {
     public void load() {
         for (Field field : FieldUtils.getAllFields(getClass())) {
             if (field.isAnnotationPresent(SimpleConfigSetting.class)) {
+                field.setAccessible(true);
                 SimpleConfigSetting configSetting = field.getAnnotation(SimpleConfigSetting.class);
                 Type type = field.getGenericType();
                 String typeName = field.getType().getSimpleName();
