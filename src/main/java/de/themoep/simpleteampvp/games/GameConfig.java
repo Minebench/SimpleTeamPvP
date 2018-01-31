@@ -111,7 +111,7 @@ public class GameConfig extends SimpleConfig {
     private LocationInfo pointItemChestLocation = null;
     
     @SimpleConfigSetting(key = "random")
-    private RegionInfo randomRegion = null;
+    private RegionInfo randomRegion = new RegionInfo(null, null);
     
     @SimpleConfigSetting(key = "teams")
     private Map<String, TeamInfo> teams = new HashMap<>();
