@@ -78,7 +78,7 @@ public class PlayerListener implements Listener {
     @EventHandler(priority = EventPriority.LOW)
     public void onPvP(EntityDamageByEntityEvent event) {
         if(event.getEntity() instanceof Player) {
-            if(plugin.getGame().getTeam((Player) event.getEntity()) == null && plugin.getGame() != null && plugin.getGame().getState() != GameState.DESTROYED) {
+            if(plugin.getGame() != null && plugin.getGame().getTeam((Player) event.getEntity()) == null && plugin.getGame().getState() != GameState.DESTROYED) {
                 if(event.getDamager() instanceof Player) {
                     event.setCancelled(!event.getDamager().hasPermission(SimpleTeamPvP.BYPASS_PERM));
                 } else {
