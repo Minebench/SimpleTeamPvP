@@ -2,14 +2,22 @@ package de.themoep.simpleteampvp.games;
 
 import de.themoep.simpleteampvp.LocationInfo;
 import de.themoep.simpleteampvp.RegionInfo;
-import lombok.Data;
+import de.themoep.simpleteampvp.config.SimpleConfig;
+import de.themoep.simpleteampvp.TeamInfo;
+import de.themoep.simpleteampvp.config.SimpleConfigSetting;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /*
@@ -29,82 +37,86 @@ import java.util.Set;
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-@Data
-public class GameConfig {
-
-    private final ConfigurationSection config;
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(callSuper = false)
+public class GameConfig extends SimpleConfig {
 
     /* --- Settings --- */
-    @GameConfigSetting(key = "use-kits")
+    @SimpleConfigSetting(key = "use-kits")
     private boolean usingKits = false;
 
-    @GameConfigSetting(key = "show-score")
+    @SimpleConfigSetting(key = "show-score")
     private boolean showScore = false;
 
-    @GameConfigSetting(key = "score-in-exp-bar")
+    @SimpleConfigSetting(key = "score-in-exp-bar")
     private boolean showScoreExp = false;
 
-    @GameConfigSetting(key = "filter.break")
+    @SimpleConfigSetting(key = "filter.break")
     private boolean filterBreak = false;
 
-    @GameConfigSetting(key = "filter.place")
+    @SimpleConfigSetting(key = "filter.place")
     private boolean filterPlace = false;
 
-    @GameConfigSetting(key = "filter.drops")
+    @SimpleConfigSetting(key = "filter.drops")
     private boolean filterDrops = false;
 
-    @GameConfigSetting(key = "filter.crafting")
+    @SimpleConfigSetting(key = "filter.crafting")
     private boolean filterCrafting = false;
 
-    @GameConfigSetting(key = "stop-build")
+    @SimpleConfigSetting(key = "stop-build")
     private boolean stopBuild = false;
 
-    @GameConfigSetting(key = "stop-interact")
+    @SimpleConfigSetting(key = "stop-interact")
     private boolean stopInteract = false;
 
-    @GameConfigSetting(key = "stop-container-access")
+    @SimpleConfigSetting(key = "stop-container-access")
     private boolean stopContainerAccess = false;
 
-    @GameConfigSetting(key = "stop-armor-change")
+    @SimpleConfigSetting(key = "stop-armor-change")
     private boolean stopArmorChange = false;
 
-    @GameConfigSetting(key = "kill-streak.name")
+    @SimpleConfigSetting(key = "kill-streak.name")
     private boolean killStreakDisplayName = false;
 
-    @GameConfigSetting(key = "kill-streak.tab")
+    @SimpleConfigSetting(key = "kill-streak.tab")
     private boolean killStreakDisplayTab = false;
 
-    @GameConfigSetting(key = "respawn-resistance")
+    @SimpleConfigSetting(key = "respawn-resistance")
     private int respawnResistance = 5;
 
-    @GameConfigSetting(key = "objective-display")
+    @SimpleConfigSetting(key = "objective-display")
     private String objectiveDisplay = "Points (%winscore%)";
 
-    @GameConfigSetting(key = "pointitem")
+    @SimpleConfigSetting(key = "pointitem")
     private ItemStack pointItem = null;
 
-    @GameConfigSetting(key = "filter.whitelist")
+    @SimpleConfigSetting(key = "filter.whitelist")
     private Set<String> itemWhitelist = new HashSet<>();
 
-    @GameConfigSetting(key = "death-drops")
+    @SimpleConfigSetting(key = "death-drops")
     private List<ItemStack> deathDrops = new ArrayList<>();
 
-    @GameConfigSetting(key = "winscore")
+    @SimpleConfigSetting(key = "winscore")
     private int winScore = -1;
 
-    @GameConfigSetting(key = "duration")
+    @SimpleConfigSetting(key = "duration")
     private int duration = -1;
 
-    @GameConfigSetting(key = "pointBlock")
+    @SimpleConfigSetting(key = "pointBlock")
     private Material pointBlock = Material.AIR;
 
-    @GameConfigSetting(key = "pointitemchest")
+    @SimpleConfigSetting(key = "pointitemchest")
     private LocationInfo pointItemChestLocation = null;
     
-    @GameConfigSetting(key = "random")
+    @SimpleConfigSetting(key = "random")
     private RegionInfo randomRegion = null;
-
-    public ConfigurationSection getConfig() {
-        return config;
+    
+    @SimpleConfigSetting(key = "teams")
+    private Map<String, TeamInfo> teams = new HashMap<>();
+    
+    public GameConfig(ConfigurationSection config) {
+        super(config);
     }
 }

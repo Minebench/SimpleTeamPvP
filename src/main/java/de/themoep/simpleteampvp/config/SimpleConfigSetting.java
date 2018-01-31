@@ -1,4 +1,4 @@
-package de.themoep.simpleteampvp.games;/*
+package de.themoep.simpleteampvp.config;/*
  * Copyright 2016 Max Lee (https://github.com/Phoenix616/)
  * 
  * This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface GameConfigSetting {
+public @interface SimpleConfigSetting {
 
     String key();
 

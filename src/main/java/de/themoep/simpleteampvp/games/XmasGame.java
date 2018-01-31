@@ -43,8 +43,8 @@ import java.util.logging.Level;
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
 public class XmasGame extends SimpleTeamPvPGame {
-    public XmasGame(SimpleTeamPvP plugin) {
-        super(plugin, "xmas");
+    public XmasGame(SimpleTeamPvP plugin, String name) {
+        super(plugin, name);
         
         getConfig().setShowScore(true);
         getConfig().setUsingKits(true);
@@ -53,7 +53,7 @@ public class XmasGame extends SimpleTeamPvPGame {
     @Override
     public boolean start() {
         setObjectiveDisplay(ChatColor.GREEN + "%time% " + ChatColor.WHITE + "- " + ChatColor.RED + "%winscore%");
-        for (TeamInfo team : plugin.getTeamMap().values()) {
+        for (TeamInfo team : getConfig().getTeams().values()) {
             team.getScoreboardTeam().setAllowFriendlyFire(false);
             team.getScoreboardTeam().setCanSeeFriendlyInvisibles(true);
             team.getScoreboardTeam().setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
@@ -115,7 +115,7 @@ public class XmasGame extends SimpleTeamPvPGame {
         if (player.hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
         
-        if (plugin.getTeam(player) == null)
+        if (getTeam(player) == null)
             return;
         
         if (!event.getKeepLevel()) {
@@ -171,7 +171,7 @@ public class XmasGame extends SimpleTeamPvPGame {
         if (player.hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
         
-        TeamInfo team = plugin.getTeam(player);
+        TeamInfo team = getTeam(player);
         
         if (team == null)
             return;
@@ -205,7 +205,7 @@ public class XmasGame extends SimpleTeamPvPGame {
     
     @EventHandler
     public void onPointBlockBreak(BlockBreakEvent event) {
-        TeamInfo team = plugin.getTeam(event.getPlayer());
+        TeamInfo team = getTeam(event.getPlayer());
         if (team == null)
             return;
         
@@ -258,6 +258,8 @@ public class XmasGame extends SimpleTeamPvPGame {
     
     @Override
     public SimpleTeamPvPGame clone() {
-        return new XmasGame(plugin);
+        XmasGame game = new XmasGame(plugin, getName());
+        game.loadConfig();
+        return game;
     }
 }

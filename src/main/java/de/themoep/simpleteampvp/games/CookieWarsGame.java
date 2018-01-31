@@ -37,13 +37,14 @@ import org.bukkit.scoreboard.Team;
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
 public class CookieWarsGame extends SimpleTeamPvPGame {
-    public CookieWarsGame(SimpleTeamPvP plugin) {
-        super(plugin, "cookie");
+    
+    public CookieWarsGame(SimpleTeamPvP plugin, String name) {
+        super(plugin, name);
     }
     
     @Override
     public boolean start() {
-        for (TeamInfo team : plugin.getTeamMap().values()) {
+        for (TeamInfo team : getConfig().getTeams().values()) {
             team.getScoreboardTeam().setAllowFriendlyFire(false);
             team.getScoreboardTeam().setCanSeeFriendlyInvisibles(true);
             team.getScoreboardTeam().setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
@@ -88,7 +89,7 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
         if (player.hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
         
-        TeamInfo team = plugin.getTeam(player);
+        TeamInfo team = getTeam(player);
         
         if (team == null)
             return;
@@ -125,7 +126,7 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
         if (getState() != GameState.RUNNING)
             return;
         
-        TeamInfo team = plugin.getTeam(event.getPlayer());
+        TeamInfo team = getTeam(event.getPlayer());
         if (team == null)
             return;
         
@@ -169,6 +170,8 @@ public class CookieWarsGame extends SimpleTeamPvPGame {
     
     @Override
     public SimpleTeamPvPGame clone() {
-        return new CookieWarsGame(plugin);
+        CookieWarsGame game = new CookieWarsGame(plugin, getName());
+        game.loadConfig();
+        return game;
     }
 }

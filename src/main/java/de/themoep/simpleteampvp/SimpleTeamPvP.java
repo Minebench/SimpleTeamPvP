@@ -7,14 +7,10 @@ import de.themoep.simpleteampvp.commands.KitSubCommand;
 import de.themoep.simpleteampvp.commands.PluginCommandExecutor;
 import de.themoep.simpleteampvp.commands.AdminSubCommand;
 import de.themoep.simpleteampvp.commands.TeamSubCommand;
-import de.themoep.simpleteampvp.games.CookieWarsGame;
-import de.themoep.simpleteampvp.games.CtwGame;
 import de.themoep.simpleteampvp.games.GameState;
 import de.themoep.simpleteampvp.games.SimpleTeamPvPGame;
-import de.themoep.simpleteampvp.games.XmasGame;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Color;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
@@ -26,6 +22,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -55,11 +52,10 @@ import java.util.logging.Level;
 public class SimpleTeamPvP extends JavaPlugin {
     
     public static final String BYPASS_PERM = "simpleteampvp.bypass";
-    private Map<String, TeamInfo> teamMap;
     private Map<String, KitInfo> kitMap;
     private SimpleTeamPvPGame game = null;
     private KitGui kitGui;
-    private Map<String, SimpleTeamPvPGame> gameMap = new HashMap<String, SimpleTeamPvPGame>();
+    private Map<String, SimpleTeamPvPGame> gameMap = new HashMap<>();
     private ServerTags serverTags = null;
     private boolean useMultiLineApi = false;
     
@@ -72,41 +68,21 @@ public class SimpleTeamPvP extends JavaPlugin {
         PluginCommandExecutor comEx = new PluginCommandExecutor(this);
         comEx.register(new AdminSubCommand(this));
         comEx.register(new GameSubCommand(this));
-        comEx.register(new TeamSubCommand(this));
         comEx.register(new KitSubCommand(this));
         getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
     }
     
     public void onDisable() {
-        for (TeamInfo team : teamMap.values()) {
-            team.getScoreboardTeam().unregister();
+        for (SimpleTeamPvPGame game : gameMap.values()) {
+            game.destroy();
         }
     }
     
     private void loadConfig() {
         useMultiLineApi = getServer().getPluginManager().isPluginEnabled("MultiLineAPI");
         kitGui = new KitGui(this);
-        teamMap = new HashMap<String, TeamInfo>();
-        kitMap = new LinkedHashMap<String, KitInfo>();
+        kitMap = new LinkedHashMap<>();
         reloadConfig();
-        if (getConfig().isConfigurationSection("teams")) {
-            for (String teamName : getConfig().getConfigurationSection("teams").getKeys(false)) {
-                ConfigurationSection teamSection = getConfig().getConfigurationSection("teams." + teamName);
-                if (teamSection != null) {
-                    try {
-                        TeamInfo teamInfo = new TeamInfo(teamSection);
-                        if (teamInfo.getSpawn() == null) {
-                            getLogger().log(Level.WARNING, "Team " + teamName + " does not have a spawn location defined!");
-                        }
-                        addTeam(teamInfo);
-                    } catch (IllegalArgumentException e) {
-                        getLogger().log(Level.SEVERE, "Could not load team " + teamName + " as there already is a team registered with that name!");
-                    }
-                    //getConfig().set("", teamInfo);
-                }
-            }
-        }
-        getLogger().log(Level.INFO, "Loaded " + teamMap.size() + " teams from the config!");
         if (getConfig().isConfigurationSection("kits")) {
             for (String kitName : getConfig().getConfigurationSection("kits").getKeys(false)) {
                 ConfigurationSection kitSection = getConfig().getConfigurationSection("kits." + kitName);
@@ -116,11 +92,28 @@ public class SimpleTeamPvP extends JavaPlugin {
                 }
             }
         }
-        
-        registerGame(new XmasGame(this));
-        ;
-        registerGame(new CtwGame(this));
-        registerGame(new CookieWarsGame(this));
+    
+        ConfigurationSection games = getConfig().getConfigurationSection("games");
+        if (games != null) {
+            for (String gameName : games.getKeys(false)) {
+                String type = games.getString(gameName + ".type", null);
+                if (type == null) {
+                    type = gameName;
+                    getLogger().log(Level.WARNING, "No type set for " + gameName + "! Using name as type...");
+                }
+                try {
+                    Class<?> gameClass = Class.forName(getClass().getPackage().getName() + ".games." + type + "Game");
+                    if(SimpleTeamPvPGame.class.isAssignableFrom(gameClass)) {
+                        SimpleTeamPvPGame game = (SimpleTeamPvPGame) gameClass.getConstructor(SimpleTeamPvP.class, String.class).newInstance(this, gameName);
+                        registerGame(game);
+                    }
+                } catch (ClassNotFoundException e) {
+                    getLogger().log(Level.WARNING, "No game type with the name " + gameName + " found!");
+                } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
+                    getLogger().log(Level.SEVERE, "Error while creating game " + gameName + " of type " + type + "!", e);
+                }
+            }
+        }
         getLogger().log(Level.INFO, "Loaded " + kitMap.size() + " kits from the config!");
     }
     
@@ -128,9 +121,6 @@ public class SimpleTeamPvP extends JavaPlugin {
      * Writes everything to the config
      */
     public void toConfig() {
-        for (TeamInfo teamInfo : teamMap.values()) {
-            toConfig(teamInfo, false);
-        }
         for (KitInfo kitInfo : kitMap.values()) {
             toConfig(kitInfo, false);
         }
@@ -180,104 +170,6 @@ public class SimpleTeamPvP extends JavaPlugin {
     public boolean reload() {
         loadConfig();
         return true;
-    }
-    
-    public TeamInfo addTeam(TeamInfo teamInfo) {
-        getLogger().log(Level.INFO, "Added team " + teamInfo.getName());
-        return teamMap.put(teamInfo.getName().toLowerCase(), teamInfo);
-    }
-    
-    public TeamInfo getTeam(String teamName) {
-        return teamMap.get(teamName.toLowerCase());
-    }
-    
-    /**
-     * Get the team a player is in
-     * @param player
-     * @return The team the player is in or null if he doesn't have one
-     */
-    public TeamInfo getTeam(Player player) {
-        for (TeamInfo team : getTeamMap().values()) {
-            if (team.inTeam(player)) {
-                return team;
-            }
-        }
-        return null;
-    }
-    
-    /**
-     * Get the team by an item
-     * @return The team, null of none found
-     */
-    public TeamInfo getTeam(ItemStack item) {
-        return getTeam(item.getType(), item.getData().getData());
-    }
-    
-    /**
-     * Get the team by a block
-     * @return The team, null of none found
-     */
-    public TeamInfo getTeam(Block block) {
-        return getTeam(block.getType(), block.getState().getData().getData());
-    }
-    
-    /**
-     * Get the team by a block or item
-     * @return The team, null of none found
-     */
-    public TeamInfo getTeam(Material mat, byte data) {
-        for (TeamInfo team : teamMap.values()) {
-            if (team.getBlockMaterial() == mat && team.getBlockData() == data) {
-                return team;
-            }
-        }
-        return null;
-    }
-    
-    /**
-     * Get a team by its region
-     * @param location The location to get the team by
-     * @return The team, null of none found
-     */
-    public TeamInfo getTeamByRegion(Location location) {
-        for (TeamInfo team : teamMap.values()) {
-            if (team.getRegion().contains(location)) {
-                return team;
-            }
-        }
-        return null;
-    }
-    
-    /**
-     * Get a team by its join region
-     * @param location The location to get the team by
-     * @return The team, null of none found
-     */
-    public TeamInfo getTeamByJoinLocation(Location location) {
-        for (TeamInfo team : teamMap.values()) {
-            if (team.getJoinRegion().contains(location)) {
-                return team;
-            }
-        }
-        return null;
-    }
-    
-    public TeamInfo removeTeam(TeamInfo teamInfo) {
-        String teamName = teamInfo.getName();
-        getConfig().set("teams." + teamName, null);
-        for (String entry : teamInfo.getScoreboardTeam().getEntries()) {
-            Player player = getServer().getPlayer(entry);
-            if (player != null && player.isOnline()) {
-                player.sendMessage(ChatColor.GOLD + "Your team has been removed!");
-            }
-        }
-        teamInfo.getScoreboardTeam().unregister();
-        getLogger().log(Level.INFO, "Removed team " + teamName);
-        return teamMap.remove(teamName.toLowerCase());
-    }
-    
-    public Map<String, TeamInfo> getTeamMap() {
-        return teamMap;
     }
     
     /**
@@ -338,7 +230,7 @@ public class SimpleTeamPvP extends JavaPlugin {
         String kitName = kitInfo.getName();
         getConfig().set("kits." + kitName, null);
         getLogger().log(Level.INFO, "Removed kit " + kitName);
-        teamMap.remove(kitName.toLowerCase());
+        kitMap.remove(kitName.toLowerCase());
         return true;
     }
     
@@ -374,6 +266,10 @@ public class SimpleTeamPvP extends JavaPlugin {
      */
     public SimpleTeamPvPGame getGame() {
         return game;
+    }
+    
+    public SimpleTeamPvPGame getGame(String name) {
+        return gameMap.get(name.toLowerCase());
     }
     
     public KitGui getKitGui() {
@@ -502,7 +398,7 @@ public class SimpleTeamPvP extends JavaPlugin {
                 kit.getBoots()
         );
         
-        TeamInfo team = getTeam(player);
+        TeamInfo team = game.getTeam(player);
         
         for (int i = 0; i < armor.size(); i++) {
             ItemStack item = armor.get(i);

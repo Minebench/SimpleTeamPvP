@@ -54,15 +54,15 @@ public class CtwGame extends SimpleTeamPvPGame {
     
     Set<Integer> artificialWool = new HashSet<Integer>();
     
-    public CtwGame(SimpleTeamPvP plugin) {
-        super(plugin, "ctw");
+    public CtwGame(SimpleTeamPvP plugin, String name) {
+        super(plugin, name);
         getConfig().setShowScore(true);
         getConfig().setUsingKits(true);
     }
     
     @Override
     public boolean start() {
-        for (TeamInfo team : plugin.getTeamMap().values()) {
+        for (TeamInfo team : getConfig().getTeams().values()) {
             team.getScoreboardTeam().setAllowFriendlyFire(false);
             team.getScoreboardTeam().setCanSeeFriendlyInvisibles(true);
             team.getScoreboardTeam().setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
@@ -107,12 +107,12 @@ public class CtwGame extends SimpleTeamPvPGame {
             return;
         }
         
-        TeamInfo woolTeam = plugin.getTeam(event.getBlock());
+        TeamInfo woolTeam = getTeam(event.getBlock());
         if (woolTeam == null) {
             return;
         }
         
-        TeamInfo team = plugin.getTeam(event.getPlayer());
+        TeamInfo team = getTeam(event.getPlayer());
         if (team == null) {
             return;
         }
@@ -136,12 +136,12 @@ public class CtwGame extends SimpleTeamPvPGame {
             return;
         }
         
-        TeamInfo woolTeam = plugin.getTeam(event.getBlock());
+        TeamInfo woolTeam = getTeam(event.getBlock());
         if (woolTeam == null) {
             return;
         }
         
-        TeamInfo team = plugin.getTeam(event.getPlayer());
+        TeamInfo team = getTeam(event.getPlayer());
         if (team == null) {
             return;
         }
@@ -155,7 +155,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             return;
         }
         
-        for (TeamInfo t : plugin.getTeamMap().values()) {
+        for (TeamInfo t : getConfig().getTeams().values()) {
             if (t.getRegion().contains(event.getBlock().getLocation())) {
                 if (woolTeam != t) {
                     decrementScore(t);
@@ -189,12 +189,12 @@ public class CtwGame extends SimpleTeamPvPGame {
         TeamInfo informTeam = null;
         
         for (Block block : blocklist) {
-            TeamInfo woolTeam = plugin.getTeam(block);
+            TeamInfo woolTeam = getTeam(block);
             if (woolTeam == null) {
                 continue;
             }
             
-            for (TeamInfo t : plugin.getTeamMap().values()) {
+            for (TeamInfo t : getConfig().getTeams().values()) {
                 if (t.getRegion().contains(block.getLocation())) {
                     decrementScore(t);
                     informTeam = t;
@@ -224,7 +224,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             return;
         }
         
-        for (TeamInfo t : plugin.getTeamMap().values()) {
+        for (TeamInfo t : getConfig().getTeams().values()) {
             if (t.getRegion().contains(event.getBlock().getLocation()) || t.getRegion().contains(event.getBlock().getRelative(event.getDirection()).getLocation())) {
                 event.setCancelled(true);
                 break;
@@ -234,7 +234,7 @@ public class CtwGame extends SimpleTeamPvPGame {
     
     @EventHandler
     public void onWoolDye(CraftItemEvent event) {
-        if (plugin.getTeam(event.getRecipe().getResult()) != null) {
+        if (getTeam(event.getRecipe().getResult()) != null) {
             event.setResult(Event.Result.DENY);
         }
     }
@@ -245,7 +245,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             return;
         }
         
-        TeamInfo woolTeam = plugin.getTeam(event.getItemDrop().getItemStack());
+        TeamInfo woolTeam = getTeam(event.getItemDrop().getItemStack());
         if (woolTeam == null) {
             return;
         }
@@ -259,7 +259,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             return;
         }
         
-        TeamInfo woolTeam = plugin.getTeam(event.getItem().getItemStack());
+        TeamInfo woolTeam = getTeam(event.getItem().getItemStack());
         if (woolTeam == null) {
             return;
         }
@@ -273,7 +273,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             return;
         }
         
-        TeamInfo woolTeam = plugin.getTeam(event.getInventory().getResult());
+        TeamInfo woolTeam = getTeam(event.getInventory().getResult());
         if (woolTeam == null) {
             return;
         }
@@ -286,7 +286,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             return;
         }
         
-        TeamInfo woolTeam = plugin.getTeam(event.getCurrentItem());
+        TeamInfo woolTeam = getTeam(event.getCurrentItem());
         if (woolTeam == null) {
             return;
         }
@@ -300,7 +300,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             return;
         }
         
-        TeamInfo team = plugin.getTeam(event.getEntity());
+        TeamInfo team = getTeam(event.getEntity());
         if (team == null) {
             return;
         }
@@ -329,7 +329,7 @@ public class CtwGame extends SimpleTeamPvPGame {
     
     private void updateCarried(Player player) {
         plugin.getServer().getScheduler().runTask(plugin, () -> {
-            TeamInfo team = plugin.getTeam(player);
+            TeamInfo team = getTeam(player);
             if (team == null) {
                 return;
             }
@@ -337,7 +337,7 @@ public class CtwGame extends SimpleTeamPvPGame {
             // Create two sets that contain the materials to check the inventory for
             Set<Material> teamMaterials = new HashSet<>();
             Set<Byte> teamData = new HashSet<>();
-            for (TeamInfo t : plugin.getTeamMap().values()) {
+            for (TeamInfo t : getConfig().getTeams().values()) {
                 teamMaterials.add(t.getBlockMaterial());
                 teamData.add(t.getBlockData());
             }
@@ -363,6 +363,8 @@ public class CtwGame extends SimpleTeamPvPGame {
     
     @Override
     public SimpleTeamPvPGame clone() {
-        return new CtwGame(plugin);
+        CtwGame game = new CtwGame(plugin, getName());
+        game.loadConfig();
+        return game;
     }
 }

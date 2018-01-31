@@ -1,22 +1,14 @@
 package de.themoep.simpleteampvp;
 
 import de.themoep.simpleteampvp.games.GameState;
-import org.bukkit.Material;
-import org.bukkit.block.ContainerBlock;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
-import org.bukkit.inventory.InventoryHolder;
 
 /**
  * SimpleTeamPvP
@@ -50,7 +42,7 @@ public class PlayerListener implements Listener {
         if(event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
 
-        if(plugin.getGame() == null || plugin.getGame().getState() != GameState.RUNNING || plugin.getTeam(event.getPlayer()) == null) {
+        if(plugin.getGame() == null || plugin.getGame().getState() != GameState.RUNNING || plugin.getGame().getTeam(event.getPlayer()) == null) {
             final Player player = event.getPlayer();
             // We need to wait a tick after login...
             plugin.getServer().getScheduler().runTask(plugin, () -> {
@@ -72,7 +64,7 @@ public class PlayerListener implements Listener {
     @EventHandler(priority = EventPriority.LOW)
     public void onDamage(EntityDamageEvent event) {
         if(event.getEntity() instanceof Player && plugin.getGame() != null && plugin.getGame().getState() != GameState.DESTROYED) {
-            event.setCancelled(plugin.getTeam((Player) event.getEntity()) == null);
+            event.setCancelled(plugin.getGame().getTeam((Player) event.getEntity()) == null);
         }
     }
 
@@ -86,7 +78,7 @@ public class PlayerListener implements Listener {
     @EventHandler(priority = EventPriority.LOW)
     public void onPvP(EntityDamageByEntityEvent event) {
         if(event.getEntity() instanceof Player) {
-            if(plugin.getTeam((Player) event.getEntity()) == null && plugin.getGame() != null && plugin.getGame().getState() != GameState.DESTROYED) {
+            if(plugin.getGame().getTeam((Player) event.getEntity()) == null && plugin.getGame() != null && plugin.getGame().getState() != GameState.DESTROYED) {
                 if(event.getDamager() instanceof Player) {
                     event.setCancelled(!event.getDamager().hasPermission(SimpleTeamPvP.BYPASS_PERM));
                 } else {

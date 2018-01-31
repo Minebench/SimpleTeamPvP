@@ -36,4 +36,8 @@ public class RegionInfo {
     public String getWorldName() {
         return pos1 != null ? pos1.getWorldName() : pos2 != null ? pos2.getWorldName() : "";
     }
+    
+    public boolean isValid() {
+        return pos1 != null && pos2 != null;
+    }
 }

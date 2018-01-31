@@ -2,7 +2,6 @@ package de.themoep.simpleteampvp.games;
 
 import de.themoep.servertags.bukkit.ServerInfo;
 import de.themoep.simpleteampvp.LocationInfo;
-import de.themoep.simpleteampvp.RegionInfo;
 import de.themoep.simpleteampvp.SimpleTeamPvP;
 import de.themoep.simpleteampvp.TeamInfo;
 import de.themoep.simpleteampvp.Utils;
@@ -10,7 +9,7 @@ import lombok.Getter;
 import net.blitzcube.mlapi.MultiLineAPI;
 import net.blitzcube.mlapi.tag.TagController;
 import net.md_5.bungee.api.ChatColor;
-import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.commons.lang.Validate;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.GameMode;
@@ -55,11 +54,7 @@ import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -120,12 +115,11 @@ public abstract class SimpleTeamPvPGame implements Listener {
         
         plugin.getLogger().log(Level.INFO, "Initializing " + name + " game");
         
-        ConfigurationSection game = plugin.getConfig().getConfigurationSection("game." + getName());
+        ConfigurationSection game = plugin.getConfig().getConfigurationSection("game." + name);
         if (game == null) {
             game = plugin.getConfig().createSection("game." + getName());
         }
         config = new GameConfig(game);
-        loadConfig();
         
         if (plugin.useMultiLineApi()) {
             tagController = () -> 0;
@@ -135,104 +129,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
     
     
     public void loadConfig() {
-        for (Field field : FieldUtils.getAllFields(config.getClass())) {
-            if (field.isAnnotationPresent(GameConfigSetting.class)) {
-                GameConfigSetting configSetting = field.getAnnotation(GameConfigSetting.class);
-                Type type = field.getGenericType();
-                String typeName = field.getType().getSimpleName();
-                if (type instanceof ParameterizedType) {
-                    ParameterizedType pType = (ParameterizedType) type;
-                    String rawTypeName = pType.getRawType().getTypeName();
-                    String typeArgName = pType.getActualTypeArguments()[0].getTypeName();
-                    typeName = rawTypeName.substring(rawTypeName.lastIndexOf('.') + 1) + "<" + typeArgName.substring(typeArgName.lastIndexOf('.') + 1) + ">";
-                }
-                Object value, defValue = null;
-                try {
-                    value = defValue = field.get(config);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                    continue;
-                }
-                
-                switch (typeName) {
-                    case "LocationInfo":
-                        ConfigurationSection locSec = config.getConfig().getConfigurationSection(configSetting.key());
-                        if (locSec != null) {
-                            value = new LocationInfo(locSec);
-                        }
-                        break;
-                    case "Collection<ItemStack>":
-                    case "List<ItemStack>":
-                    case "Set<ItemStack>":
-                        for (String string : config.getConfig().getStringList(configSetting.key())) {
-                            try {
-                                int amount = 1;
-                                String[] partsA = string.split(" ");
-                                if (partsA.length > 1) {
-                                    amount = Integer.parseInt(partsA[1]);
-                                }
-                                String[] partsB = partsA[0].split(":");
-                                short damage = 0;
-                                if (partsB.length > 1) {
-                                    damage = Short.parseShort(partsB[1]);
-                                }
-                                plugin.getLogger().log(Level.INFO, "Adding " + string);
-                                ((Collection<ItemStack>) value).add(new ItemStack(Material.valueOf(partsB[0].toUpperCase()), amount, damage));
-                            } catch (NumberFormatException e) {
-                                plugin.getLogger().log(Level.WARNING, string + " does contain an invalid number?");
-                            } catch (IllegalArgumentException e) {
-                                plugin.getLogger().log(Level.WARNING, string + " does not contain a valid Bukkit Material key?");
-                            }
-                        }
-                        break;
-                    case "Collection<String>":
-                    case "List<String>":
-                    case "Set<String>":
-                        for (String string : config.getConfig().getStringList(configSetting.key())) {
-                            plugin.getLogger().log(Level.INFO, "Adding " + string);
-                            ((Collection<String>) value).add(string);
-                        }
-                        break;
-                    case "ItemStack":
-                        value = config.getConfig().getItemStack(configSetting.key(), (ItemStack) value);
-                        break;
-                    case "Material":
-                        try {
-                            value = Material.matchMaterial(config.getConfig().getString(configSetting.key(), value.toString()));
-                        } catch (IllegalArgumentException e) {
-                            config.setPointBlock(Material.AIR);
-                            plugin.getLogger().log(Level.WARNING, config.getConfig().getString(configSetting.key(), "null") + " is not a valid Material name!");
-                        }
-                        break;
-                    case "String":
-                        value = ChatColor.translateAlternateColorCodes('&', config.getConfig().getString(configSetting.key(), (String) value));
-                        break;
-                    case "RegionInfo":
-                        ConfigurationSection pos1section = config.getConfig().getConfigurationSection(configSetting.key() + ".pos1");
-                        ConfigurationSection pos2section = config.getConfig().getConfigurationSection(configSetting.key() + ".pos2");
-                        if (pos1section != null && pos2section != null) {
-                            value = new RegionInfo(new LocationInfo(pos1section), new LocationInfo(pos2section));
-                        }
-                        break;
-                    default:
-                        value = config.getConfig().get(configSetting.key(), value);
-                }
-                if (value != null) {
-                    if (!(value instanceof Boolean) || !value.equals(defValue)) {
-                        try {
-                            plugin.getLogger().log(Level.INFO, configSetting.key().replace('-', ' ') + ": " + value);
-                            field.set(config, value);
-                        } catch (IllegalArgumentException e) {
-                            plugin.getLogger().log(Level.WARNING, "Can't set " + typeName + " " + field.getName() + " to " + value.getClass().getSimpleName() + " loaded from " + configSetting.key());
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                } else {
-                    plugin.getLogger().log(Level.WARNING, configSetting.key() + "'s value is null?");
-                }
-            }
-        }
+        config.load();
         
         if (config.getPointItemChestLocation() != null) {
             Location loc = config.getPointItemChestLocation().getLocation();
@@ -276,6 +173,10 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if (getState() != GameState.INITIATED)
             return false;
         
+        for (TeamInfo team : config.getTeams().values()) {
+            team.init();
+        }
+        
         plugin.getServer().broadcastMessage(ChatColor.GREEN + "Spieler auf Plattformen werden den Teams hinzugefügt...");
         
         state = GameState.JOINING;
@@ -283,10 +184,10 @@ public abstract class SimpleTeamPvPGame implements Listener {
             if (player.hasPermission(SimpleTeamPvP.BYPASS_PERM) || player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR)
                 continue;
             
-            if (plugin.getTeam(player) != null)
+            if (getTeam(player) != null)
                 continue;
             
-            TeamInfo team = plugin.getTeamByJoinLocation(player.getLocation());
+            TeamInfo team = getTeamByJoinLocation(player.getLocation());
             if (team != null) {
                 team.addPlayer(player);
             }
@@ -308,7 +209,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             if (player.hasPermission(SimpleTeamPvP.BYPASS_PERM) || player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR)
                 continue;
-            if (plugin.getTeam(player) != null)
+            if (getTeam(player) != null)
                 continue;
             if (config.getRandomRegion() == null || config.getRandomRegion().contains(player.getLocation()))
                 playersToJoin.add(player);
@@ -316,11 +217,11 @@ public abstract class SimpleTeamPvPGame implements Listener {
         plugin.getLogger().log(Level.INFO, "Players to join: " + playersToJoin.size());
         
         int totalPlayers = playersToJoin.size();
-        for (TeamInfo team : plugin.getTeamMap().values()) {
+        for (TeamInfo team : config.getTeams().values()) {
             totalPlayers += team.getSize();
         }
-        plugin.getLogger().log(Level.INFO, "Number of teams: " + plugin.getTeamMap().size());
-        double perfectSize = (double) totalPlayers / (double) plugin.getTeamMap().size();
+        plugin.getLogger().log(Level.INFO, "Number of teams: " + config.getTeams().size());
+        double perfectSize = (double) totalPlayers / (double) config.getTeams().size();
         
         plugin.getLogger().log(Level.INFO, "perfectSize: " + perfectSize);
         
@@ -328,7 +229,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             // Team key -> Tag
             Map<String, String> teamTags = new HashMap<>();
             
-            for (TeamInfo team : plugin.getTeamMap().values()) {
+            for (TeamInfo team : config.getTeams().values()) {
                 
                 Map<String, Integer> tags = new HashMap<>();
                 for (String playerName : team.getScoreboardTeam().getEntries()) {
@@ -358,7 +259,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 teamTags.put(team.getName(), teamTag);
             }
             
-            for (TeamInfo team : plugin.getTeamMap().values()) {
+            for (TeamInfo team : config.getTeams().values()) {
                 // Filter out players that come from another server than the majority of the team
                 // and remove them as long as the team is larger than the perfect size
                 for (String playerName : team.getScoreboardTeam().getEntries()) {
@@ -405,7 +306,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 Player player = playerIterator.next();
                 ServerInfo serverInfo = plugin.getServerTags().getPlayerServer(player);
                 if (serverInfo != null && teamTags.containsValue(serverInfo.getTag())) {
-                    for (TeamInfo team : plugin.getTeamMap().values()) {
+                    for (TeamInfo team : config.getTeams().values()) {
                         if (team.getSize() < perfectSize - 0.5 && teamTags.containsKey(team.getName()) && teamTags.get(team.getName()).equals(serverInfo.getTag())) {
                             team.addPlayer(player);
                             plugin.getLogger().log(Level.INFO, "[ST] Added " + player.getName() + " to " + team.getName());
@@ -419,7 +320,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         plugin.getLogger().log(Level.INFO, "Players to join after servertags: " + playersToJoin.size());
         
         // Remove players from teams that have more than the perfect size
-        for (TeamInfo team : plugin.getTeamMap().values()) {
+        for (TeamInfo team : config.getTeams().values()) {
             for (String playerName : team.getScoreboardTeam().getEntries()) {
                 if (team.getSize() <= perfectSize + 0.5)
                     break;
@@ -436,7 +337,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         }
         
         Iterator<Player> playerIterator = playersToJoin.iterator();
-        for (TeamInfo team : plugin.getTeamMap().values()) {
+        for (TeamInfo team : config.getTeams().values()) {
             while (playerIterator.hasNext()) {
                 if (team.getSize() >= perfectSize - 0.5)
                     break;
@@ -451,7 +352,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if (playersToJoin.size() > 0) {
             plugin.getLogger().log(Level.INFO, "Adding " + playersToJoin.size() + " remaining players to teams according to their player count:");
             
-            List<TeamInfo> teams = new ArrayList<>(plugin.getTeamMap().values());
+            List<TeamInfo> teams = new ArrayList<>(config.getTeams().values());
             teams.sort((t1, t2) -> Integer.compare(t2.getSize(), t1.getSize()));
             
             for (TeamInfo team : teams) {
@@ -470,7 +371,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if (playersToJoin.size() > 0) {
             plugin.getLogger().log(Level.INFO, "Adding " + playersToJoin.size() + " remaining players to totally random teams:");
             Random r = new Random();
-            List<TeamInfo> teams = new ArrayList<>(plugin.getTeamMap().values());
+            List<TeamInfo> teams = new ArrayList<>(config.getTeams().values());
             while (playerIterator.hasNext()) {
                 Player player = playerIterator.next();
                 TeamInfo team = teams.get(r.nextInt(teams.size()));
@@ -545,7 +446,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         
-        for (TeamInfo team : plugin.getTeamMap().values()) {
+        for (TeamInfo team : config.getTeams().values()) {
             
             plugin.getServer().broadcastMessage(ChatColor.GREEN + "Team " + team.getScoreboardTeam().getPrefix() + team.getScoreboardTeam().getDisplayName() + team.getScoreboardTeam().getSuffix() + ChatColor.GREEN + ":");
             showPlayerList(team);
@@ -614,7 +515,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         int maxScore = 0;
         
         final List<TeamInfo> winTeams = new ArrayList<>();
-        for (TeamInfo team : plugin.getTeamMap().values()) {
+        for (TeamInfo team : config.getTeams().values()) {
             int teamScore = getScore(team);
             if (teamScore > maxScore) {
                 maxScore = teamScore;
@@ -689,42 +590,46 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     fwm.setPower(0);
                     fw.setFireworkMeta(fwm);
                 }
-                for (String entry : team.getScoreboardTeam().getEntries()) {
-                    Player player = plugin.getServer().getPlayer(entry);
-                    if (player != null && player.isOnline()) {
-                        Firework fw = (Firework) player.getWorld().spawnEntity(player.getLocation(), EntityType.FIREWORK);
-                        if (fwm == null) {
-                            fwm = fw.getFireworkMeta();
-                            FireworkEffect effect = FireworkEffect.builder().flicker(true).withColor(color).with(FireworkEffect.Type.BALL).trail(true).build();
-                            fwm.addEffect(effect);
-                            fwm.setPower(0);
+                if (team.getScoreboardTeam() != null) {
+                    for (String entry : team.getScoreboardTeam().getEntries()) {
+                        Player player = plugin.getServer().getPlayer(entry);
+                        if (player != null && player.isOnline()) {
+                            Firework fw = (Firework) player.getWorld().spawnEntity(player.getLocation(), EntityType.FIREWORK);
+                            if (fwm == null) {
+                                fwm = fw.getFireworkMeta();
+                                FireworkEffect effect = FireworkEffect.builder().flicker(true).withColor(color).with(FireworkEffect.Type.BALL).trail(true).build();
+                                fwm.addEffect(effect);
+                                fwm.setPower(0);
+                            }
+                            fw.setFireworkMeta(fwm);
                         }
-                        fw.setFireworkMeta(fwm);
                     }
                 }
             }
         }, 0, 10);
         
         teleportTask = plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            for (TeamInfo team : plugin.getTeamMap().values()) {
-                for (String name1 : team.getScoreboardTeam().getEntries()) {
-                    Player player = plugin.getServer().getPlayer(name1);
-                    if (player != null) {
-                        plugin.getKitGui().close(player);
+            for (TeamInfo team : config.getTeams().values()) {
+                if (team.getScoreboardTeam() != null) {
+                    for (String name1 : team.getScoreboardTeam().getEntries()) {
+                        Player player = plugin.getServer().getPlayer(name1);
+                        if (player != null) {
+                            plugin.getKitGui().close(player);
+                            team.getScoreboardTeam().removeEntry(name1);
+                            player.getInventory().clear();
+                            player.getInventory().setHelmet(null);
+                            player.getInventory().setChestplate(null);
+                            player.getInventory().setLeggings(null);
+                            player.getInventory().setBoots(null);
+                            player.setLevel(0);
+                            player.setExp(0);
+                            player.setHealth(player.getMaxHealth());
+                            player.updateInventory();
+                            player.teleport(plugin.getServer().getWorlds().get(0).getSpawnLocation());
+                            player.setBedSpawnLocation(plugin.getServer().getWorlds().get(0).getSpawnLocation(), true);
+                        }
                         team.getScoreboardTeam().removeEntry(name1);
-                        player.getInventory().clear();
-                        player.getInventory().setHelmet(null);
-                        player.getInventory().setChestplate(null);
-                        player.getInventory().setLeggings(null);
-                        player.getInventory().setBoots(null);
-                        player.setLevel(0);
-                        player.setExp(0);
-                        player.setHealth(player.getMaxHealth());
-                        player.updateInventory();
-                        player.teleport(plugin.getServer().getWorlds().get(0).getSpawnLocation());
-                        player.setBedSpawnLocation(plugin.getServer().getWorlds().get(0).getSpawnLocation(), true);
                     }
-                    team.getScoreboardTeam().removeEntry(name1);
                 }
             }
             plugin.getServer().broadcastMessage(ChatColor.GREEN + "Spieler zurück zum Spawn geportet!");
@@ -735,9 +640,12 @@ public abstract class SimpleTeamPvPGame implements Listener {
             
             state = GameState.DESTROYED;
         }, 20 * 10);
+        
+        regenPointBlocks();
     }
     
     private void showPlayerList(TeamInfo team) {
+        Validate.notNull(team.getScoreboardTeam(), "Team not initialised yet!");
         Set<String> teamPlayers = team.getScoreboardTeam().getEntries();
         if (plugin.getServerTags() != null) {
             teamPlayers = new LinkedHashSet<>();
@@ -749,10 +657,9 @@ public abstract class SimpleTeamPvPGame implements Listener {
     }
     
     
-    protected void destroy() {
+    public void destroy() {
         teleportTask.cancel();
         fwTask.cancel();
-        regenPointBlocks();
         for (Objective o : new Objective[]{pointObjective, killStreakObjectiveTab, killStreakObjectiveName, playerKillsObjective}) {
             if (o != null) {
                 try {
@@ -761,6 +668,9 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     plugin.getLogger().log(Level.WARNING, "Could not unregister objective " + o.getName() + " ?", e);
                 }
             }
+        }
+        for (TeamInfo team : config.getTeams().values()) {
+            team.unregister();
         }
         HandlerList.unregisterAll(this);
         state = GameState.DESTROYED;
@@ -943,7 +853,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if (player.hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
         
-        TeamInfo team = plugin.getTeam(player);
+        TeamInfo team = getTeam(player);
         if (team == null)
             return;
         
@@ -989,7 +899,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         if (event.getPlayer().hasPermission(SimpleTeamPvP.BYPASS_PERM))
             return;
         
-        TeamInfo team = plugin.getTeam(event.getPlayer());
+        TeamInfo team = getTeam(event.getPlayer());
         if (team != null) {
             if (isUsingKits()) {
                 final Player player = event.getPlayer();
@@ -1219,5 +1129,108 @@ public abstract class SimpleTeamPvPGame implements Listener {
         plugin.getConfig().set("game." + name.toLowerCase() + "random." + type, loc.serialize());
         plugin.saveConfig();
         return true;
+    }
+    
+    public TeamInfo addTeam(TeamInfo teamInfo) {
+        plugin.getLogger().log(Level.INFO, "Added team " + teamInfo.getName());
+        return config.getTeams().put(teamInfo.getName().toLowerCase(), teamInfo);
+    }
+    
+    public TeamInfo getTeam(String teamName) {
+        return config.getTeams().get(teamName.toLowerCase());
+    }
+    
+    /**
+     * Get the team by a block or item
+     * @return The team, null of none found
+     * @param mat
+     * @param data
+     */
+    public TeamInfo getTeam(Material mat, byte data) {
+        for (TeamInfo team : config.getTeams().values()) {
+            if (team.getBlockMaterial() == mat && team.getBlockData() == data) {
+                return team;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Get a team by its region
+     * @param location The location to get the team by
+     * @return The team, null of none found
+     */
+    public TeamInfo getTeamByRegion(Location location) {
+        for (TeamInfo team : config.getTeams().values()) {
+            if (team.getRegion().contains(location)) {
+                return team;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Get the team by a block
+     * @return The team, null of none found
+     * @param block
+     */
+    public TeamInfo getTeam(Block block) {
+        return getTeam(block.getType(), block.getState().getData().getData());
+    }
+    
+    /**
+     * Get the team by an item
+     * @return The team, null of none found
+     * @param item
+     */
+    public TeamInfo getTeam(ItemStack item) {
+        return getTeam(item.getType(), item.getData().getData());
+    }
+    
+    /**
+     * Get the team a player is in
+     * @param player
+     * @return The team the player is in or null if he doesn't have one
+     */
+    public TeamInfo getTeam(Player player) {
+        for (TeamInfo team : config.getTeams().values()) {
+            if (team.inTeam(player)) {
+                return team;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Get a team by its join region
+     * @param location The location to get the team by
+     * @return The team, null of none found
+     */
+    public TeamInfo getTeamByJoinLocation(Location location) {
+        for (TeamInfo team : config.getTeams().values()) {
+            if (team.getJoinRegion().contains(location)) {
+                return team;
+            }
+        }
+        return null;
+    }
+    
+    public TeamInfo removeTeam(TeamInfo teamInfo) {
+        String teamName = teamInfo.getName();
+        config.getConfig().set("teams." + teamName, null);
+        for (String entry : teamInfo.getScoreboardTeam().getEntries()) {
+            Player player = plugin.getServer().getPlayer(entry);
+            if (player != null && player.isOnline()) {
+                player.sendMessage(ChatColor.GOLD + "Your team has been removed!");
+            }
+        }
+        teamInfo.getScoreboardTeam().unregister();
+        plugin.getLogger().log(Level.INFO, "Removed team " + teamName);
+        plugin.saveConfig();
+        return config.getTeams().remove(teamName.toLowerCase());
+    }
+    
+    public Map<String, TeamInfo> getTeamMap() {
+        return config.getTeams();
     }
 }

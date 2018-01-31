@@ -1,10 +1,11 @@
 package de.themoep.simpleteampvp;
 
+import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
 import lombok.Setter;
-import net.md_5.bungee.api.ChatColor;
+import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
@@ -37,8 +38,10 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 public class TeamInfo {
+    private final String name;
+    private String displayName;
     private ChatColor color = null;
-    private Team scoreboardTeam;
+    private Team scoreboardTeam = null;
     private Material blockMaterial = Material.AIR;
     private byte blockData = 0;
     
@@ -54,11 +57,7 @@ public class TeamInfo {
      * @param name The name of the Team
      */
     public TeamInfo(String name) {
-        try {
-            scoreboardTeam = Bukkit.getScoreboardManager().getMainScoreboard().registerNewTeam(name);
-        } catch(IllegalArgumentException e) {
-            scoreboardTeam = Bukkit.getScoreboardManager().getMainScoreboard().getTeam(name);
-        }
+        this.name = name;
     }
 
     /**
@@ -66,6 +65,7 @@ public class TeamInfo {
      * @param scoreboardTeam The Team object registered within the server's main scoreboard
      */
     public TeamInfo(Team scoreboardTeam) {
+        this(scoreboardTeam.getName());
         this.scoreboardTeam = scoreboardTeam;
     }
 
@@ -87,41 +87,58 @@ public class TeamInfo {
         setColor(config.getString("color", ""));
         setBlock(config.getString("block", ""));
 
-        String displayName = config.getString("displayname", "");
-        if(!displayName.isEmpty()) {
-            scoreboardTeam.setDisplayName(displayName);
-        }
+        displayName = config.getString("displayname", "");
         ConfigurationSection spawnSection = config.getConfigurationSection("spawn");
         if(spawnSection != null) {
             spawn = new LocationInfo(spawnSection);
+        } else {
+            Bukkit.getLogger().log(Level.WARNING, "Team " + config.getName() + " does not have a spawn location defined!");
         }
         ConfigurationSection pointSection = config.getConfigurationSection("point");
         if(pointSection != null) {
             point = new LocationInfo(pointSection);
         }
-        ConfigurationSection pos1Section = config.getConfigurationSection("pos1");
-        ConfigurationSection pos2Section = config.getConfigurationSection("pos2");
+        ConfigurationSection pos1Section = config.getConfigurationSection("region.pos1");
+        ConfigurationSection pos2Section = config.getConfigurationSection("region.pos2");
         if(pos1Section != null && pos2Section != null) {
             region = new RegionInfo(new LocationInfo(pos1Section), new LocationInfo(pos2Section));
         }
-        ConfigurationSection joinPos1Section = config.getConfigurationSection("join-pos1");
-        ConfigurationSection joinPos2Section = config.getConfigurationSection("join-pos2");
+        ConfigurationSection joinPos1Section = config.getConfigurationSection("joinregion.pos1");
+        ConfigurationSection joinPos2Section = config.getConfigurationSection("joinregion.pos2");
         if(joinPos1Section != null && joinPos2Section != null) {
             joinRegion = new RegionInfo(new LocationInfo(joinPos1Section), new LocationInfo(joinPos2Section));
+        } else {
+            Bukkit.getLogger().log(Level.WARNING, "Team " + config.getName() + " does not have a join region defined!");
         }
+    }
+    
+    public void init() {
+        try {
+            scoreboardTeam = Bukkit.getScoreboardManager().getMainScoreboard().registerNewTeam(name);
+        } catch(IllegalArgumentException e) {
+            scoreboardTeam = Bukkit.getScoreboardManager().getMainScoreboard().getTeam(name);
+        }
+        scoreboardTeam.setDisplayName(displayName);
+        scoreboardTeam.setColor(color);
+        scoreboardTeam.setPrefix("" + color);
+        scoreboardTeam.setSuffix("" + ChatColor.RESET);
     }
 
     public Map<String, Object> serialize() {
-        Map<String, Object> data = new LinkedHashMap<String, Object>();
-        data.put("displayname", this.scoreboardTeam.getDisplayName());
-        data.put("color", this.color == null ? null : this.color.getName());
-        data.put("block", this.blockMaterial + ":" + this.blockData);
-        data.put("spawn", this.spawn == null ? null : this.spawn.serialize());
-        data.put("point", this.point == null ? null : this.point.serialize());
-        data.put("pos1", this.region.getPos1() == null ? null : this.region.getPos1().serialize());
-        data.put("pos2", this.region.getPos2() == null ? null : this.region.getPos2().serialize());
-        data.put("join-pos1", this.joinRegion.getPos1() == null ? null : this.joinRegion.getPos1().serialize());
-        data.put("join-pos2", this.joinRegion.getPos2() == null ? null : this.joinRegion.getPos2().serialize());
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("displayname", displayName.isEmpty() ? null : displayName);
+        data.put("color", color == null ? null : color.name());
+        data.put("block", blockMaterial + ":" + blockData);
+        data.put("spawn", spawn == null ? null : spawn.serialize());
+        data.put("point", point == null ? null : point.serialize());
+        data.put("region", region.isValid() ? ImmutableMap.of(
+                "pos1", region.getPos1().serialize(),
+                "pos2", region.getPos2().serialize()
+        ) : null);
+        data.put("joinregion", joinRegion.isValid() ? ImmutableMap.of(
+                "pos1", joinRegion.getPos1().serialize(),
+                "pos2", joinRegion.getPos2().serialize()
+        ) : null);
         return data;
     }
 
@@ -130,19 +147,18 @@ public class TeamInfo {
     }
 
     public void addPlayer(Player player) {
+        Validate.notNull(scoreboardTeam, "Team not initialised yet!");
         player.sendMessage(ChatColor.GREEN + "Du wurdest Team " + color + getName() + ChatColor.GREEN + " hinzugefügt!");
         scoreboardTeam.addEntry(player.getName());
     }
 
     public boolean removePlayer(Player player) {
+        Validate.notNull(scoreboardTeam, "Team not initialised yet!");
         return scoreboardTeam.removeEntry(player.getName());
     }
 
-    public String getName() {
-        return scoreboardTeam.getName();
-    }
-
     public int getSize() {
+        Validate.notNull(scoreboardTeam, "Team not initialised yet!");
         return scoreboardTeam.getSize();
     }
 
@@ -159,15 +175,17 @@ public class TeamInfo {
             }
         }
         if(color == null) {
-            List<String> colorList = new ArrayList<String>();
+            List<String> colorList = new ArrayList<>();
             for(ChatColor color : ChatColor.values()) {
-                colorList.add(color.getName());
+                colorList.add(color.name());
             }
             Bukkit.getLogger().log(Level.WARNING, "[SimpleTeamPvP] " + colorStr + " is not a valid color name! (Available are " + colorList.stream().collect(Collectors.joining(", ")) + ")");
             return false;
         }
-        scoreboardTeam.setPrefix("" + color);
-        scoreboardTeam.setSuffix("" + ChatColor.RESET);
+        if (scoreboardTeam != null) {
+            scoreboardTeam.setPrefix("" + color);
+            scoreboardTeam.setSuffix("" + ChatColor.RESET);
+        }
         return true;
 
     }
@@ -205,6 +223,13 @@ public class TeamInfo {
     }
 
     public boolean containsPlayer(Player p) {
+        Validate.notNull(scoreboardTeam, "Team not initialised yet!");
         return scoreboardTeam.hasEntry(p.getName());
+    }
+    
+    public void unregister() {
+        if (scoreboardTeam != null) {
+            scoreboardTeam.unregister();
+        }
     }
 }

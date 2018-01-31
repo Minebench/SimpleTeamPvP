@@ -11,6 +11,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 /**
  * Copyright 2016 Max Lee (https://github.com/Phoenix616/)
  * <p/>
@@ -27,11 +30,14 @@ import org.bukkit.inventory.ItemStack;
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
 public class GameSubCommand extends SubCommand {
+    private TeamSubCommand teamCommand;
+    
     public GameSubCommand(SimpleTeamPvP plugin) {
         super(plugin, plugin.getName().toLowerCase(), "game",
                 "[new <type>|start|stop|join|balance|regen|<type> [setpointitem|setpointblock|setduration|setwinscore]]",
                 "Start and manage games"
         );
+        teamCommand = new TeamSubCommand(plugin);
     }
     
     @Override
@@ -101,6 +107,22 @@ public class GameSubCommand extends SubCommand {
                 sender.sendMessage(ChatColor.YELLOW + Integer.toString(regened) + ChatColor.GREEN + " point blocks regened!");
             } else {
                 sender.sendMessage(ChatColor.RED + "No game found!");
+            }
+            
+        /* -- CONFIG -- */
+    
+        } else if ("teams".equalsIgnoreCase(args[0])) {
+            if (args.length > 1) {
+                SimpleTeamPvPGame game = plugin.getGame(args[1]);
+                if (game != null) {
+                    if (!teamCommand.execute(getCommand() + "game teams " + args[1], game, sender, Arrays.stream(args).skip(2).toArray(String[]::new))) {
+                        sender.sendMessage(ChatColor.RED + "Usage: /" + getCommand() + "game teams " + args[1] + " " + teamCommand.getUsage());
+                    }
+                } else {
+                    sender.sendMessage(ChatColor.RED + "There is no game type " + ChatColor.YELLOW + args[1].toLowerCase());
+                }
+            } else {
+                sender.sendMessage("Usage: /" + getCommand() + " game teams <type> ...");
             }
             
         } else if ("setpointitem".equalsIgnoreCase(args[0])) {

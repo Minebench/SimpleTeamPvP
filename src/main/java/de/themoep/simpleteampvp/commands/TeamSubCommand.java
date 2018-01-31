@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableSet;
 import de.themoep.simpleteampvp.LocationInfo;
 import de.themoep.simpleteampvp.SimpleTeamPvP;
 import de.themoep.simpleteampvp.TeamInfo;
+import de.themoep.simpleteampvp.games.SimpleTeamPvPGame;
+import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -30,23 +32,26 @@ import java.util.stream.Collectors;
  * You should have received a copy of the Mozilla Public License v2.0
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
-public class TeamSubCommand extends SubCommand {
+@Getter
+public class TeamSubCommand {
+    private final String usage;
+    private final String help;
+    private final SimpleTeamPvP plugin;
+    
     public TeamSubCommand(SimpleTeamPvP plugin) {
-        super(plugin, plugin.getName().toLowerCase(), "team",
-                "[create|remove|list|info|setdisplayname|setcolor|setblock|set [spawn|point|pos1|pos2]]",
-                "Create and edit teams"
-        );
+        this.plugin = plugin;
+        usage = "create|remove|list|info|setdisplayname|setcolor|setblock|set [spawn|point|pos1|pos2]]";
+        help = "Create and edit teams";
     }
 
-    @Override
-    public boolean execute(CommandSender sender, String[] args) {
+    public boolean execute(String command, SimpleTeamPvPGame game, CommandSender sender, String[] args) {
         if (args.length == 0) {
             return false;
         }
 
         if("create".equalsIgnoreCase(args[0])) {
             if(args.length > 1) {
-                if(plugin.getTeam(args[1]) == null) {
+                if(game.getTeam(args[1]) == null) {
                     TeamInfo teamInfo = new TeamInfo(args[1]);
                     if(args.length > 2) {
                         String displayname = args[2];
@@ -58,31 +63,31 @@ public class TeamSubCommand extends SubCommand {
                     } else {
                         sender.sendMessage(ChatColor.GREEN + "Added team " + ChatColor.WHITE + teamInfo.getName());
                     }
-                    plugin.addTeam(teamInfo);
+                    game.addTeam(teamInfo);
                     plugin.toConfig(teamInfo);
                 } else {
                     sender.sendMessage(ChatColor.RED + "A team with the name " + ChatColor.WHITE + args[1] + ChatColor.RED + " already exists on this server's scoreboard!");
                 }
             } else {
-                sender.sendMessage("Usage: /" + getCommand() + " team create <name> [<displayname...>]");
+                sender.sendMessage("Usage: /" + command + " team create <name> [<displayname...>]");
             }
 
         } else if("remove".equalsIgnoreCase(args[0])) {
             if(args.length > 1) {
-                TeamInfo teamInfo = plugin.getTeam(args[1]);
+                TeamInfo teamInfo = game.getTeam(args[1]);
                 if(teamInfo != null) {
                     sender.sendMessage(ChatColor.GREEN + "Removed team " + ChatColor.WHITE + teamInfo.getName());
-                    plugin.removeTeam(teamInfo);
+                    game.removeTeam(teamInfo);
                 } else {
                     sender.sendMessage(ChatColor.RED + "No team with the name " + ChatColor.WHITE + args[1] + ChatColor.RED + " found!");
                 }
             } else {
-                sender.sendMessage("Usage: /" + getCommand() + " team remove <name>");
+                sender.sendMessage("Usage: /" + command + " team remove <name>");
             }
 
         } else if("info".equalsIgnoreCase(args[0])) {
             if(args.length > 1) {
-                TeamInfo teamInfo = plugin.getTeam(args[1]);
+                TeamInfo teamInfo = game.getTeam(args[1]);
                 if(teamInfo != null) {
                     sender.sendMessage(ChatColor.GREEN + "Team name: " + ChatColor.WHITE + teamInfo.getName());
                     for (Map.Entry<String, Object> entry : teamInfo.serialize().entrySet()) {
@@ -99,13 +104,13 @@ public class TeamSubCommand extends SubCommand {
                     sender.sendMessage(ChatColor.RED + "No team with the name " + ChatColor.WHITE + args[1] + ChatColor.RED + " found!");
                 }
             } else {
-                sender.sendMessage("Usage: /" + getCommand() + " team info <name>");
+                sender.sendMessage("Usage: /" + command + " team info <name>");
             }
 
         } else if("list".equalsIgnoreCase(args[0])) {
             sender.sendMessage(ChatColor.GREEN + "Registered teams:");
-            if(plugin.getTeamMap().size() > 0) {
-                for(TeamInfo teamInfo : plugin.getTeamMap().values()) {
+            if(game.getTeamMap().size() > 0) {
+                for(TeamInfo teamInfo : game.getTeamMap().values()) {
                     sender.sendMessage((teamInfo.getColor() != null ? teamInfo.getColor() : "") + teamInfo.getName() + "/" + teamInfo.getScoreboardTeam().getDisplayName());
                 }
             } else {
@@ -114,7 +119,7 @@ public class TeamSubCommand extends SubCommand {
 
         } else if("setdisplayname".equalsIgnoreCase(args[0])) {
             if(args.length > 2) {
-                TeamInfo teamInfo = plugin.getTeam(args[1]);
+                TeamInfo teamInfo = game.getTeam(args[1]);
                 if(teamInfo != null) {
                     String displayname = args[2];
                     for(int i = 3; i > args.length; i++) {
@@ -127,15 +132,15 @@ public class TeamSubCommand extends SubCommand {
                     sender.sendMessage(ChatColor.RED + "No team with the name " + ChatColor.WHITE + args[1] + ChatColor.RED + " found!");
                 }
             } else {
-                sender.sendMessage("Usage: /" + getCommand() + " team setdisplayname <name> <displayname...>");
+                sender.sendMessage("Usage: /" + command + " team setdisplayname <name> <displayname...>");
             }
 
         } else if("setcolor".equalsIgnoreCase(args[0])) {
             if(args.length > 2) {
-                TeamInfo teamInfo = plugin.getTeam(args[1]);
+                TeamInfo teamInfo = game.getTeam(args[1]);
                 if(teamInfo != null) {
                     if(teamInfo.setColor(args[2])) {
-                        sender.sendMessage(ChatColor.GREEN + "Set color of team " + ChatColor.WHITE + teamInfo.getName() + ChatColor.GREEN + " to " + teamInfo.getColor() + teamInfo.getColor().getName());
+                        sender.sendMessage(ChatColor.GREEN + "Set color of team " + ChatColor.WHITE + teamInfo.getName() + ChatColor.GREEN + " to " + teamInfo.getColor() + teamInfo.getColor().name());
                         plugin.toConfig(teamInfo);
                     } else {
                         List<String> colorList = new ArrayList<String>();
@@ -148,12 +153,12 @@ public class TeamSubCommand extends SubCommand {
                     sender.sendMessage(ChatColor.RED + "No team with the name " + ChatColor.WHITE + args[1] + ChatColor.RED + " found!");
                 }
             } else {
-                sender.sendMessage("Usage: /" + getCommand() + " team setcolor <name> <color>");
+                sender.sendMessage("Usage: /" + command + " team setcolor <name> <color>");
             }
 
         } else if("setblock".equalsIgnoreCase(args[0])) {
             if(args.length > 1) {
-                TeamInfo teamInfo = plugin.getTeam(args[1]);
+                TeamInfo teamInfo = game.getTeam(args[1]);
                 if(teamInfo != null) {
                     if(args.length > 2) {
                         if(teamInfo.setBlock(args[2])) {
@@ -168,18 +173,18 @@ public class TeamSubCommand extends SubCommand {
                         sender.sendMessage(ChatColor.GREEN + "Set block of team " + ChatColor.WHITE + teamInfo.getName() + ChatColor.GREEN + " to " + ChatColor.WHITE + teamInfo.getBlockMaterial() + ":" + teamInfo.getBlockData());
                         plugin.toConfig(teamInfo);
                     } else {
-                        sender.sendMessage("Usage: /" + getCommand() + " team setblock <name> [<material:data>]");
+                        sender.sendMessage("Usage: /" + command + " team setblock <name> [<material:data>]");
                     }
                 } else {
                     sender.sendMessage(ChatColor.RED + "No team with the name " + ChatColor.WHITE + args[1] + ChatColor.RED + " found!");
                 }
             } else {
-                sender.sendMessage("Usage: /" + getCommand() + " team setblock <name> [<material:data>]");
+                sender.sendMessage("Usage: /" + command + " team setblock <name> [<material:data>]");
             }
 
         } else if("set".equalsIgnoreCase(args[0])) {
             if(args.length > 2) {
-                TeamInfo teamInfo = plugin.getTeam(args[1]);
+                TeamInfo teamInfo = game.getTeam(args[1]);
                 if(teamInfo != null) {
                     String type = args[2];
                     LocationInfo loc = null;
@@ -187,7 +192,7 @@ public class TeamSubCommand extends SubCommand {
                         if(sender instanceof Player) {
                             loc = new LocationInfo(((Player) sender).getLocation());
                         } else {
-                            sender.sendMessage("To run this command from the console use \"" + getCommand() + " team set <name> <loctype> <world> <x> <y> <z> [<pitch> <yaw>]\"");
+                            sender.sendMessage("To run this command from the console use \"" + command + " team set <name> <loctype> <world> <x> <y> <z> [<pitch> <yaw>]\"");
                             return true;
                         }
                     } else if(args.length > 6) {
@@ -255,7 +260,7 @@ public class TeamSubCommand extends SubCommand {
                     sender.sendMessage(ChatColor.RED + "No team with the name " + ChatColor.WHITE + args[1] + ChatColor.RED + " found!");
                 }
             } else {
-                sender.sendMessage("Usage: /" + getCommand() + " team set <name> <loctype> [<world> <x> <y> <z> [<pitch> <yaw>]]");
+                sender.sendMessage("Usage: /" + command + " team set <name> <loctype> [<world> <x> <y> <z> [<pitch> <yaw>]]");
             }
 
         } else {
