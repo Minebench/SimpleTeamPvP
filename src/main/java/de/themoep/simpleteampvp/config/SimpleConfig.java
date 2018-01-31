@@ -14,6 +14,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.logging.Level;
@@ -37,10 +38,12 @@ public class SimpleConfig {
                 SimpleConfigSetting configSetting = field.getAnnotation(SimpleConfigSetting.class);
                 Type type = field.getGenericType();
                 String typeName = field.getType().getSimpleName();
-                String parameterName = "";
+                String[] parameterNames = {};
                 if (type instanceof ParameterizedType) {
-                    String typeArgName = ((ParameterizedType) type).getActualTypeArguments()[0].getTypeName();
-                    parameterName = typeArgName.substring(typeArgName.lastIndexOf('.') + 1);
+                    parameterNames = Arrays.stream(((ParameterizedType) type).getActualTypeArguments())
+                            .map(Type::getTypeName)
+                            .map(t -> t.substring(t.lastIndexOf('.') + 1))
+                            .toArray(String[]::new);
                 }
                 Object value, defValue = null;
                 try {
@@ -55,7 +58,7 @@ public class SimpleConfig {
                     case "List":
                     case "Set":
                         for (Object configValue : getConfig().getList(configSetting.key(), new ArrayList<Object>((Collection<?>) defValue))) {
-                            Object v = loadValue(parameterName, configValue, null);
+                            Object v = loadValue(parameterNames[0], configValue, null);
                             if (v != null) {
                                 ((Collection) value).add(v);
                             }
@@ -65,7 +68,7 @@ public class SimpleConfig {
                         ConfigurationSection configSection = getConfig().getConfigurationSection(configSetting.key());
                         if (configSection != null) {
                             for (String key : configSection.getKeys(false)) {
-                                Object v = loadValue(parameterName, configSection.get(key, null), null);
+                                Object v = loadValue(parameterNames[1], configSection.get(key, null), null);
                                 if (v != null) {
                                     ((Map) value).put(key.toLowerCase(), v);
                                 }
@@ -76,7 +79,7 @@ public class SimpleConfig {
                         value = loadValue(typeName, getConfig().get(configSetting.key(), null), defValue);
                 }
                 if (value != null) {
-                    if (!(value instanceof Boolean) || !value.equals(defValue)) {
+                    if (!value.equals(defValue)) {
                         try {
                             Bukkit.getLogger().log(Level.INFO, configSetting.key().replace('-', ' ') + ": " + value);
                             field.set(this, value);
@@ -97,7 +100,9 @@ public class SimpleConfig {
         if (configValue == null) {
             return defValue;
         }
-        if (configValue.getClass().getTypeName().equalsIgnoreCase(typeName)) {
+        String configType = configValue.getClass().getTypeName();
+        configType = configType.substring(configType.lastIndexOf('.') + 1);
+        if (configType.equalsIgnoreCase(typeName)) {
             if (configValue instanceof String) {
                 return ChatColor.translateAlternateColorCodes('&', (String) configValue);
             }
@@ -105,6 +110,27 @@ public class SimpleConfig {
         }
         Object value = defValue;
         switch (typeName) {
+            case "int":
+                try {
+                    value = Integer.parseInt(String.valueOf(configValue));
+                } catch (NumberFormatException e) {
+                    Bukkit.getLogger().log(Level.WARNING, configValue + " is not a valid "+ typeName);
+                }
+                break;
+            case "double":
+                try {
+                    value = Double.parseDouble(String.valueOf(configValue));
+                } catch (NumberFormatException e) {
+                    Bukkit.getLogger().log(Level.WARNING, configValue + " is not a valid "+ typeName);
+                }
+                break;
+            case "float":
+                try {
+                    value = Float.parseFloat(String.valueOf(configValue));
+                } catch (NumberFormatException e) {
+                    Bukkit.getLogger().log(Level.WARNING, configValue + " is not a valid "+ typeName);
+                }
+                break;
             case "LocationInfo":
                 if (configValue instanceof LocationInfo) {
                     value = configValue;

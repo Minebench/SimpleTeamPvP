@@ -115,7 +115,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
         
         plugin.getLogger().log(Level.INFO, "Initializing " + name + " game");
         
-        ConfigurationSection game = plugin.getConfig().getConfigurationSection("game." + name);
+        ConfigurationSection game = plugin.getConfig().getConfigurationSection("games." + name);
         if (game == null) {
             game = plugin.getConfig().createSection("game." + getName());
         }
@@ -658,8 +658,12 @@ public abstract class SimpleTeamPvPGame implements Listener {
     
     
     public void destroy() {
-        teleportTask.cancel();
-        fwTask.cancel();
+        if (teleportTask != null) {
+            teleportTask.cancel();
+        }
+        if (fwTask != null) {
+            fwTask.cancel();
+        }
         for (Objective o : new Objective[]{pointObjective, killStreakObjectiveTab, killStreakObjectiveName, playerKillsObjective}) {
             if (o != null) {
                 try {

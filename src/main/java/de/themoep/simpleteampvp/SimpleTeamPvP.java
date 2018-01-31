@@ -55,7 +55,7 @@ public class SimpleTeamPvP extends JavaPlugin {
     private Map<String, KitInfo> kitMap;
     private SimpleTeamPvPGame game = null;
     private KitGui kitGui;
-    private Map<String, SimpleTeamPvPGame> gameMap = new HashMap<>();
+    private Map<String, SimpleTeamPvPGame> gameMap;
     private ServerTags serverTags = null;
     private boolean useMultiLineApi = false;
     
@@ -92,7 +92,9 @@ public class SimpleTeamPvP extends JavaPlugin {
                 }
             }
         }
+        getLogger().log(Level.INFO, "Loaded " + kitMap.size() + " kits from the config!");
     
+        gameMap = new HashMap<>();
         ConfigurationSection games = getConfig().getConfigurationSection("games");
         if (games != null) {
             for (String gameName : games.getKeys(false)) {
@@ -114,7 +116,6 @@ public class SimpleTeamPvP extends JavaPlugin {
                 }
             }
         }
-        getLogger().log(Level.INFO, "Loaded " + kitMap.size() + " kits from the config!");
     }
     
     /**
