@@ -241,12 +241,12 @@ public class TeamSubCommand {
                             if (teamInfo.getJoinRegion().getPos2() != null && !teamInfo.getJoinRegion().getPos2().getWorldName().equalsIgnoreCase(loc.getWorldName())) {
                                 sender.sendMessage(ChatColor.RED + "Warning: Position 1 has to be in the same world as position 2! (Pos 2 world: " + teamInfo.getRegion().getPos2().getWorldName() + ")");
                             }
-                            teamInfo.getRegion().setPos1(loc);
+                            teamInfo.getJoinRegion().setPos1(loc);
                         } else if ("joinpos2".equalsIgnoreCase(type)) {
                             if (teamInfo.getJoinRegion().getPos1() != null && !teamInfo.getJoinRegion().getPos1().getWorldName().equalsIgnoreCase(loc.getWorldName())) {
                                 sender.sendMessage(ChatColor.RED + "Warning: Position 2 has to be in the same world as position 1! (Pos 1 world: " + teamInfo.getRegion().getPos1().getWorldName() + ")");
                             }
-                            teamInfo.getRegion().setPos2(loc);
+                            teamInfo.getJoinRegion().setPos2(loc);
                         } else {
                             sender.sendMessage(ChatColor.RED + type + " is not a valid team location setting. Valid ones are spawn, point, pos1 or pos2!");
                             return true;
