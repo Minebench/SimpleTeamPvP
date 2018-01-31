@@ -116,9 +116,6 @@ public abstract class SimpleTeamPvPGame implements Listener {
         plugin.getLogger().log(Level.INFO, "Initializing " + name + " game");
         
         ConfigurationSection game = plugin.getConfig().getConfigurationSection("games." + name);
-        if (game == null) {
-            game = plugin.getConfig().createSection("game." + getName());
-        }
         config = new GameConfig(game);
         
         if (plugin.useMultiLineApi()) {
