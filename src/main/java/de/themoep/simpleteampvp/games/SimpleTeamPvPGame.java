@@ -54,7 +54,9 @@ import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -249,6 +251,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 int tagCount = 0;
                 for (Map.Entry<String, Integer> entry : tags.entrySet()) {
                     if (entry.getValue() > tagCount) {
+                        tagCount = entry.getValue();
                         teamTag = entry.getKey();
                     }
                 }
@@ -283,16 +286,16 @@ public abstract class SimpleTeamPvPGame implements Listener {
                 }
                 
                 // Team still larger than the perfect size? Remove last joined player
-                List<String> teamMates = new ArrayList<>(team.getScoreboardTeam().getEntries());
+                Deque<String> teamMates = new ArrayDeque<>(team.getScoreboardTeam().getEntries());
                 while (team.getSize() > perfectSize + 0.5) {
-                    String name = teamMates.get(teamMates.size() - 1);
+                    String name = teamMates.peekLast();
                     Player player = plugin.getServer().getPlayer(name);
                     if (player == null)
                         continue;
                     
                     team.removePlayer(player);
                     plugin.getLogger().log(Level.INFO, "[ST] Removed " + player.getName() + " from " + team.getName() + " (Step 2)");
-                    teamMates.remove(name);
+                    teamMates.pollLast();
                     playersToJoin.add(player);
                 }
             }
@@ -313,8 +316,8 @@ public abstract class SimpleTeamPvPGame implements Listener {
                     }
                 }
             }
+            plugin.getLogger().log(Level.INFO, "Players to join after servertags: " + playersToJoin.size());
         }
-        plugin.getLogger().log(Level.INFO, "Players to join after servertags: " + playersToJoin.size());
         
         // Remove players from teams that have more than the perfect size
         for (TeamInfo team : config.getTeams().values()) {
@@ -346,7 +349,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             }
         }
         
-        if (playersToJoin.size() > 0) {
+        if (playerIterator.hasNext()) {
             plugin.getLogger().log(Level.INFO, "Adding " + playersToJoin.size() + " remaining players to teams according to their player count:");
             
             List<TeamInfo> teams = new ArrayList<>(config.getTeams().values());
@@ -365,7 +368,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             }
         }
         
-        if (playersToJoin.size() > 0) {
+        if (playerIterator.hasNext()) {
             plugin.getLogger().log(Level.INFO, "Adding " + playersToJoin.size() + " remaining players to totally random teams:");
             Random r = new Random();
             List<TeamInfo> teams = new ArrayList<>(config.getTeams().values());
