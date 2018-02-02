@@ -234,4 +234,8 @@ public class TeamInfo {
             scoreboardTeam.unregister();
         }
     }
+    
+    public boolean isInitialised() {
+        return scoreboardTeam != null;
+    }
 }

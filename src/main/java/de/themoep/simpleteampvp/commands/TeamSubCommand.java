@@ -64,7 +64,7 @@ public class TeamSubCommand {
                         sender.sendMessage(ChatColor.GREEN + "Added team " + ChatColor.WHITE + teamInfo.getName());
                     }
                     game.addTeam(teamInfo);
-                    plugin.toConfig(teamInfo);
+                    game.toConfig(teamInfo);
                 } else {
                     sender.sendMessage(ChatColor.RED + "A team with the name " + ChatColor.WHITE + args[1] + ChatColor.RED + " already exists on this server's scoreboard!");
                 }
@@ -127,7 +127,7 @@ public class TeamSubCommand {
                     }
                     teamInfo.getScoreboardTeam().setDisplayName(displayname);
                     sender.sendMessage(ChatColor.GREEN + "Set displayname of team " + ChatColor.WHITE + teamInfo.getName() + ChatColor.GREEN + " to " + ChatColor.WHITE + teamInfo.getScoreboardTeam().getDisplayName());
-                    plugin.toConfig(teamInfo);
+                    game.toConfig(teamInfo);
                 } else {
                     sender.sendMessage(ChatColor.RED + "No team with the name " + ChatColor.WHITE + args[1] + ChatColor.RED + " found!");
                 }
@@ -141,7 +141,7 @@ public class TeamSubCommand {
                 if(teamInfo != null) {
                     if(teamInfo.setColor(args[2])) {
                         sender.sendMessage(ChatColor.GREEN + "Set color of team " + ChatColor.WHITE + teamInfo.getName() + ChatColor.GREEN + " to " + teamInfo.getColor() + teamInfo.getColor().name());
-                        plugin.toConfig(teamInfo);
+                        game.toConfig(teamInfo);
                     } else {
                         List<String> colorList = new ArrayList<String>();
                         for(ChatColor color : ChatColor.values()) {
@@ -163,7 +163,7 @@ public class TeamSubCommand {
                     if(args.length > 2) {
                         if(teamInfo.setBlock(args[2])) {
                             sender.sendMessage(ChatColor.GREEN + "Set block of team " + ChatColor.WHITE + teamInfo.getName() + ChatColor.GREEN + " to " + ChatColor.WHITE + teamInfo.getBlockMaterial() + ":" + teamInfo.getBlockData());
-                            plugin.toConfig(teamInfo);
+                            game.toConfig(teamInfo);
                         } else {
                             sender.sendMessage(ChatColor.YELLOW + args[2].toUpperCase() + ChatColor.RED + " is not valid block string! (material:data)");
                         }
@@ -171,7 +171,7 @@ public class TeamSubCommand {
                         Block block = ((Player) sender).getTargetBlock(ImmutableSet.of(Material.AIR), 20);
                         teamInfo.setBlock(block);
                         sender.sendMessage(ChatColor.GREEN + "Set block of team " + ChatColor.WHITE + teamInfo.getName() + ChatColor.GREEN + " to " + ChatColor.WHITE + teamInfo.getBlockMaterial() + ":" + teamInfo.getBlockData());
-                        plugin.toConfig(teamInfo);
+                        game.toConfig(teamInfo);
                     } else {
                         sender.sendMessage("Usage: /" + command + " team setblock <name> [<material:data>]");
                     }
@@ -239,12 +239,12 @@ public class TeamSubCommand {
                             teamInfo.getRegion().setPos2(loc);
                         } else if ("joinpos1".equalsIgnoreCase(type)) {
                             if (teamInfo.getJoinRegion().getPos2() != null && !teamInfo.getJoinRegion().getPos2().getWorldName().equalsIgnoreCase(loc.getWorldName())) {
-                                sender.sendMessage(ChatColor.RED + "Warning: Position 1 has to be in the same world as position 2! (Pos 2 world: " + teamInfo.getRegion().getPos2().getWorldName() + ")");
+                                sender.sendMessage(ChatColor.RED + "Warning: Position 1 has to be in the same world as position 2! (Pos 2 world: " + teamInfo.getJoinRegion().getPos2().getWorldName() + ")");
                             }
                             teamInfo.getJoinRegion().setPos1(loc);
                         } else if ("joinpos2".equalsIgnoreCase(type)) {
                             if (teamInfo.getJoinRegion().getPos1() != null && !teamInfo.getJoinRegion().getPos1().getWorldName().equalsIgnoreCase(loc.getWorldName())) {
-                                sender.sendMessage(ChatColor.RED + "Warning: Position 2 has to be in the same world as position 1! (Pos 1 world: " + teamInfo.getRegion().getPos1().getWorldName() + ")");
+                                sender.sendMessage(ChatColor.RED + "Warning: Position 2 has to be in the same world as position 1! (Pos 1 world: " + teamInfo.getJoinRegion().getPos1().getWorldName() + ")");
                             }
                             teamInfo.getJoinRegion().setPos2(loc);
                         } else {
@@ -252,7 +252,7 @@ public class TeamSubCommand {
                             return true;
                         }
                         sender.sendMessage(ChatColor.GREEN + "Set " + type + " location of team " + ChatColor.WHITE + teamInfo.getName() + ChatColor.GREEN + " to " + ChatColor.WHITE + loc);
-                        plugin.toConfig(teamInfo);
+                        game.toConfig(teamInfo);
                     } else {
                         sender.sendMessage(ChatColor.RED + "Could not set " + type + " location for team " + ChatColor.WHITE + teamInfo.getName());
                     }

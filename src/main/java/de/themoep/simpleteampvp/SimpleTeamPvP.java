@@ -6,7 +6,6 @@ import de.themoep.simpleteampvp.commands.GameSubCommand;
 import de.themoep.simpleteampvp.commands.KitSubCommand;
 import de.themoep.simpleteampvp.commands.PluginCommandExecutor;
 import de.themoep.simpleteampvp.commands.AdminSubCommand;
-import de.themoep.simpleteampvp.commands.TeamSubCommand;
 import de.themoep.simpleteampvp.games.GameState;
 import de.themoep.simpleteampvp.games.SimpleTeamPvPGame;
 import net.md_5.bungee.api.ChatColor;
@@ -131,26 +130,6 @@ public class SimpleTeamPvP extends JavaPlugin {
             }
         }
         saveConfig();
-    }
-    
-    /**
-     * Write the team info to the config
-     * @param teamInfo The info to write
-     */
-    public void toConfig(TeamInfo teamInfo) {
-        toConfig(teamInfo, true);
-    }
-    
-    /**
-     * Write the team info to the config
-     * @param teamInfo The info to write
-     * @param save     Whether or not we should write the config to disk
-     */
-    public void toConfig(TeamInfo teamInfo, boolean save) {
-        getConfig().set("teams." + teamInfo.getName(), teamInfo.serialize());
-        getLogger().log(Level.INFO, "Saved team " + teamInfo.getName() + " to config!");
-        if (save)
-            saveConfig();
     }
     
     /**

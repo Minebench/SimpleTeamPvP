@@ -516,6 +516,9 @@ public abstract class SimpleTeamPvPGame implements Listener {
         
         final List<TeamInfo> winTeams = new ArrayList<>();
         for (TeamInfo team : config.getTeams().values()) {
+            if (!team.isInitialised()) {
+                continue;
+            }
             int teamScore = getScore(team);
             if (teamScore > maxScore) {
                 maxScore = teamScore;
@@ -1236,5 +1239,25 @@ public abstract class SimpleTeamPvPGame implements Listener {
     
     public Map<String, TeamInfo> getTeamMap() {
         return config.getTeams();
+    }
+    
+    /**
+     * Write the team info to the config
+     * @param teamInfo The info to write
+     */
+    public void toConfig(TeamInfo teamInfo) {
+        toConfig(teamInfo, true);
+    }
+    
+    /**
+     * Write the team info to the config
+     * @param teamInfo The info to write
+     * @param save     Whether or not we should write the config to disk
+     */
+    public void toConfig(TeamInfo teamInfo, boolean save) {
+        plugin.getConfig().set("games." + getName() + ".teams." + teamInfo.getName(), teamInfo.serialize());
+        plugin.getLogger().log(Level.INFO, "Saved team " + teamInfo.getName() + " to config!");
+        if (save)
+            plugin.saveConfig();
     }
 }

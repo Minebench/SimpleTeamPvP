@@ -62,6 +62,8 @@ public class CtwGame extends SimpleTeamPvPGame {
     
     @Override
     public boolean start() {
+        if (getState() != GameState.WAITING)
+            return false;
         for (TeamInfo team : getConfig().getTeams().values()) {
             team.getScoreboardTeam().setAllowFriendlyFire(false);
             team.getScoreboardTeam().setCanSeeFriendlyInvisibles(true);
