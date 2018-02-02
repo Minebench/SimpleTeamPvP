@@ -176,7 +176,7 @@ public abstract class SimpleTeamPvPGame implements Listener {
             team.init();
         }
         
-        plugin.getServer().broadcastMessage(ChatColor.GREEN + "Spieler auf Plattformen werden den Teams hinzugefügt...");
+        plugin.getServer().broadcastMessage(ChatColor.GREEN + "Spieler werden den Teams hinzugefügt...");
         
         state = GameState.JOINING;
         for (Player player : plugin.getServer().getOnlinePlayers()) {

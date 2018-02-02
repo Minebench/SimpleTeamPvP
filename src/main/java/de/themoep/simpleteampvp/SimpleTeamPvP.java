@@ -247,6 +247,7 @@ public class SimpleTeamPvP extends JavaPlugin {
     public void registerGame(SimpleTeamPvPGame game) {
         gameMap.put(game.getName().toLowerCase(), game);
         game.loadConfig();
+        getLogger().log(Level.INFO, "Registered " + game);
     }
     
     /**
