@@ -37,7 +37,42 @@ public class RegionInfo {
         return pos1 != null ? pos1.getWorldName() : pos2 != null ? pos2.getWorldName() : "";
     }
     
+    public LocationInfo calculateMin() {
+        if (pos1 == null || pos2 == null) {
+            return null;
+        }
+        return new LocationInfo(getWorldName(),
+                Math.min(pos1.getX(), pos2.getX()),
+                Math.min(pos1.getY(), pos2.getY()),
+                Math.min(pos1.getZ(), pos2.getZ())
+        );
+    }
+    
+    public LocationInfo calculateMax() {
+        if (pos1 == null || pos2 == null) {
+            return null;
+        }
+        return new LocationInfo(getWorldName(),
+                Math.max(pos1.getX(), pos2.getX()),
+                Math.max(pos1.getY(), pos2.getY()),
+                Math.max(pos1.getZ(), pos2.getZ())
+        );
+    }
+    
     public boolean isValid() {
         return pos1 != null && pos2 != null;
+    }
+    
+    public LocationInfo calculateMiddle() {
+        if (pos1 == null || pos2 == null) {
+            return null;
+        }
+        LocationInfo min = calculateMin();
+        LocationInfo max = calculateMax();
+        return new LocationInfo(getWorldName(),
+                min.getX() + (max.getX() - min.getX()),
+                min.getY() + (max.getY() - min.getY()),
+                min.getZ() + (max.getZ() - min.getZ())
+        );
     }
 }

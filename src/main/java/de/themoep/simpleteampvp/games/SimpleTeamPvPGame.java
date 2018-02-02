@@ -204,14 +204,19 @@ public abstract class SimpleTeamPvPGame implements Listener {
         
         plugin.getServer().broadcastMessage(ChatColor.GREEN + "Ausbalancieren und Auffüllen der Teams gestartet...");
         
+        Map<Player, String> beforeBalance = new HashMap<>();
         List<Player> playersToJoin = new ArrayList<>();
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             if (player.hasPermission(SimpleTeamPvP.BYPASS_PERM) || player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR)
                 continue;
-            if (getTeam(player) != null)
-                continue;
-            if (config.getRandomRegion() == null || config.getRandomRegion().contains(player.getLocation()))
-                playersToJoin.add(player);
+            TeamInfo team = getTeam(player);
+            if (team == null) {
+                if (config.getRandomRegion() == null || config.getRandomRegion().contains(player.getLocation()))
+                    playersToJoin.add(player);
+                beforeBalance.put(player, "");
+            } else {
+                beforeBalance.put(player, team.getName());
+            }
         }
         plugin.getLogger().log(Level.INFO, "Players to join: " + playersToJoin.size());
         
@@ -381,6 +386,21 @@ public abstract class SimpleTeamPvPGame implements Listener {
             }
         }
         plugin.getLogger().log(Level.INFO, "All players joined! (" + playersToJoin.size() + ")");
+        
+        for (Map.Entry<Player, String> entry : beforeBalance.entrySet()) {
+            TeamInfo team = getTeam(entry.getKey());
+            if (team != null && !team.getName().equals(entry.getValue())) {
+                Player player = null;
+                for (Iterator<String> it = team.getScoreboardTeam().getEntries().iterator(); player == null && it.hasNext();) {
+                    player = plugin.getServer().getPlayer(it.next());
+                }
+                if (player != null && team.getJoinRegion().contains(player.getLocation())) {
+                    entry.getKey().teleport(player);
+                } else {
+                    entry.getKey().teleport(team.getJoinRegion().calculateMiddle().getLocation());
+                }
+            }
+        }
         
         plugin.getServer().broadcastMessage(ChatColor.GREEN + "Teams ausbalanciert und aufgefüllt!");
         
