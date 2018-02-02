@@ -3,6 +3,7 @@ package de.themoep.simpleteampvp;
 import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -37,6 +38,7 @@ import java.util.stream.Collectors;
  */
 @Getter
 @Setter
+@ToString
 public class TeamInfo {
     private final String name;
     private String displayName;
